@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FibStudio — Fotografía que crea sentimientos</title>
+  <meta name="description" content="FibStudio: fotografía de eventos y sesiones que captura lo que sentiste, no solo lo que viste." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css\images\styles.css" />
+</head>
+<body>
+
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a href="#inicio" class="logo">
+        <span class="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40" width="28" height="28">
+            <path d="M20,20 C20,15 23,12 28,12 C34,12 38,17 38,23 C38,31 31,37 22,37 C11,37 3,29 3,17" fill="none" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </span>
+        fib<span class="logo-accent">studio</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Navegación principal">
+        <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navList">
+          <span></span><span></span><span></span>
+          <span class="sr-only">Abrir menú</span>
+        </button>
+        <ul id="navList" class="nav-list">
+          <li><a href="#inicio">Inicio</a></li>
+          <li><a href="#estudio">Estudio</a></li>
+          <li><a href="#portafolio">Portafolio</a></li>
+          <li><a href="#servicios">Servicios</a></li>
+          <li><a href="#proceso">Proceso</a></li>
+          <li><a href="#contacto" class="nav-cta">Reservar</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenido">
+
+    <!-- HERO -->
+    <section class="hero" id="inicio" aria-label="Presentación">
+      <svg class="hero-spiral" viewBox="0 0 500 500" aria-hidden="true" focusable="false">
+        <path id="spiralPath" d="M250,250
+             C250,220 270,200 300,200
+             C340,200 370,230 370,270
+             C370,320 330,350 280,350
+             C220,350 180,300 180,240
+             C180,170 240,120 320,120
+             C410,120 470,190 470,270
+             C470,370 380,440 280,440"
+          fill="none" stroke="currentColor" stroke-width="1.4" />
+      </svg>
+
+      <div class="wrap hero-inner">
+        <p class="eyebrow mono">f/1.4 &nbsp;·&nbsp; 1/125 &nbsp;·&nbsp; ISO 200 &nbsp;·&nbsp; la proporción que ordena la emoción</p>
+        <h1 class="hero-title">
+          No fotografiamos momentos.<br />
+          Fotografiamos <em>lo que sentiste</em> en ellos.
+        </h1>
+        <p class="hero-sub">
+          FibStudio nace de una idea simple: toda buena fotografía sigue una proporción invisible,
+          igual que toda buena historia sigue una emoción. Cubrimos tus eventos y creamos tus sesiones
+          con esa misma precisión sensible.
+        </p>
+        <div class="hero-actions">
+          <a href="#contacto" class="btn btn-primary">Reservar una sesión</a>
+          <a href="#portafolio" class="btn btn-ghost">Ver portafolio</a>
+        </div>
+      </div>
+
+      <div class="hero-scroll" aria-hidden="true">
+        <span></span>
+        <p class="mono">desplázate</p>
+      </div>
+    </section>
+
+    <!-- ESTUDIO / MANIFIESTO -->
+    <section class="manifesto" id="estudio" aria-labelledby="estudio-title">
+      <div class="wrap manifesto-inner">
+        <p class="section-eyebrow mono">01 — el estudio</p>
+        <h2 id="estudio-title">La espiral es la firma de FibStudio</h2>
+        <div class="manifesto-grid">
+          <p class="manifesto-lead">
+            El nombre <strong>Fib</strong>studio viene de Fibonacci: la secuencia detrás de la espiral
+            áurea que artistas y fotógrafos usan hace siglos para guiar la mirada hacia lo que importa.
+          </p>
+          <p>
+            Trabajamos igual con las historias de las personas. Cada evento y cada sesión tiene un punto
+            de atención emocional —una mirada, un abrazo, un silencio— y nuestro trabajo es encontrarlo,
+            encuadrarlo y dejar que la composición lo sostenga. Nada de fórmulas frías: cada sesión se
+            planea a partir de lo que quieres recordar dentro de veinte años.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PORTAFOLIO -->
+    <section class="portfolio" id="portafolio" aria-labelledby="portfolio-title">
+      <div class="wrap">
+        <p class="section-eyebrow mono">02 — portafolio</p>
+        <h2 id="portfolio-title">Historias que ya contamos</h2>
+        <p class="section-lead">
+          Una muestra de eventos y sesiones. Reemplaza estas imágenes por tu propio trabajo
+          (ver <code>README.md</code>).
+        </p>
+
+        <div class="gallery" role="list">
+          <figure class="gallery-item span-2" role="listitem">
+            <div class="ph-image ph-1" role="img" aria-label="Fotografía de boda al atardecer, pareja abrazada"></div>
+            <figcaption><span class="mono">eventos /</span> Boda al atardecer</figcaption>
+          </figure>
+          <figure class="gallery-item" role="listitem">
+            <div class="ph-image ph-2" role="img" aria-label="Retrato de sesión individual en exteriores"></div>
+            <figcaption><span class="mono">sesiones /</span> Retrato natural</figcaption>
+          </figure>
+          <figure class="gallery-item" role="listitem">
+            <div class="ph-image ph-3" role="img" aria-label="Fotografía de celebración familiar"></div>
+            <figcaption><span class="mono">eventos /</span> Reunión familiar</figcaption>
+          </figure>
+          <figure class="gallery-item" role="listitem">
+            <div class="ph-image ph-4" role="img" aria-label="Sesión de pareja al amanecer"></div>
+            <figcaption><span class="mono">sesiones /</span> Pareja, amanecer</figcaption>
+          </figure>
+          <figure class="gallery-item span-2" role="listitem">
+            <div class="ph-image ph-5" role="img" aria-label="Fotografía de fiesta corporativa"></div>
+            <figcaption><span class="mono">eventos /</span> Lanzamiento de marca</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICIOS -->
+    <section class="services" id="servicios" aria-labelledby="services-title">
+      <div class="wrap">
+        <p class="section-eyebrow mono">03 — servicios</p>
+        <h2 id="services-title">Dos formas de trabajar juntos</h2>
+
+        <div class="services-grid">
+          <article class="service-card">
+            <p class="service-index mono">Eventos</p>
+            <h3>Cobertura de eventos</h3>
+            <p>
+              Bodas, cumpleaños, lanzamientos, celebraciones familiares. Nos movemos sin interrumpir,
+              atentos a los gestos que nadie más ve, para entregarte el evento completo tal como se sintió.
+            </p>
+            <ul class="service-list">
+              <li>Cobertura desde 4 hasta jornada completa</li>
+              <li>Segundo fotógrafo disponible para eventos grandes</li>
+              <li>Galería digital editada y organizada por momentos</li>
+              <li>Entrega de adelanto en las primeras 48 horas</li>
+            </ul>
+            <a href="#contacto" class="btn btn-outline">Cotizar mi evento</a>
+          </article>
+
+          <article class="service-card">
+            <p class="service-index mono">Sesiones</p>
+            <h3>Sesiones personalizadas</h3>
+            <p>
+              Retratos, parejas, familias, marca personal. Diseñamos la sesión alrededor de una idea o
+              un sentimiento concreto, no de una pose genérica. Tú llegas, nosotros guiamos el resto.
+            </p>
+            <ul class="service-list">
+              <li>Locación a tu elección o propuesta de estudio</li>
+              <li>Guía de vestuario y moodboard previo</li>
+              <li>Selección curada de imágenes en alta resolución</li>
+              <li>Opción de video corto detrás de cámaras</li>
+            </ul>
+            <a href="#contacto" class="btn btn-outline">Agendar mi sesión</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROCESO -->
+    <section class="process" id="proceso" aria-labelledby="process-title">
+      <div class="wrap">
+        <p class="section-eyebrow mono">04 — proceso</p>
+        <h2 id="process-title">Cómo trabajamos, paso a paso</h2>
+
+        <ol class="process-list">
+          <li>
+            <span class="process-num mono">01</span>
+            <h3>Conversamos</h3>
+            <p>Nos cuentas tu evento o idea de sesión, fechas y qué quieres sentir al ver las fotos.</p>
+          </li>
+          <li>
+            <span class="process-num mono">02</span>
+            <h3>Planeamos</h3>
+            <p>Definimos locación, tiempos y una pequeña guía visual para que nada se improvise.</p>
+          </li>
+          <li>
+            <span class="process-num mono">03</span>
+            <h3>Disparamos</h3>
+            <p>El día de la sesión o evento, con calma, presencia y atención a lo que de verdad importa.</p>
+          </li>
+          <li>
+            <span class="process-num mono">04</span>
+            <h3>Entregamos</h3>
+            <p>Editamos con cuidado y te entregamos una galería lista para guardar y compartir.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- TESTIMONIO -->
+    <section class="testimonial" aria-label="Testimonio de cliente">
+      <div class="wrap">
+        <blockquote>
+          <p>
+            “Reemplaza este testimonio con las palabras de tu primer cliente feliz. Un par de frases
+            reales pesan más que cualquier descripción del servicio.”
+          </p>
+          <cite>— Nombre del cliente, tipo de sesión</cite>
+        </blockquote>
+      </div>
+    </section>
+
+    <!-- CONTACTO -->
+    <section class="contact" id="contacto" aria-labelledby="contact-title">
+      <div class="wrap contact-inner">
+        <div class="contact-info">
+          <p class="section-eyebrow mono">05 — contacto</p>
+          <h2 id="contact-title">Hablemos de tu historia</h2>
+          <p>
+            Cuéntanos qué quieres celebrar o recordar. Respondemos en menos de 24 horas con
+            disponibilidad y una propuesta a tu medida.
+          </p>
+          <ul class="contact-list">
+            <li>
+              <span class="mono">correo</span>
+              <a href="mailto:hola@fibstudio.com">hola@fibstudio.com</a>
+            </li>
+            <li>
+              <span class="mono">whatsapp</span>
+              <a href="tel:+000000000">+00 000 000 000</a>
+            </li>
+            <li>
+              <span class="mono">instagram</span>
+              <a href="https://instagram.com" target="_blank" rel="noopener">@fibstudio</a>
+            </li>
+          </ul>
+        </div>
+
+        <form class="contact-form" action="#" method="post">
+          <div class="field">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" autocomplete="name" required />
+          </div>
+          <div class="field">
+            <label for="email">Correo electrónico</label>
+            <input type="email" id="email" name="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="servicio">Tipo de servicio</label>
+            <select id="servicio" name="servicio" required>
+              <option value="" disabled selected>Selecciona una opción</option>
+              <option value="evento">Cobertura de evento</option>
+              <option value="sesion">Sesión personalizada</option>
+              <option value="otro">Otro / no estoy seguro</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="mensaje">Cuéntanos tu idea</label>
+            <textarea id="mensaje" name="mensaje" rows="4" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Enviar mensaje</button>
+          <p class="form-note">Este formulario es una plantilla estática. Conéctalo a tu correo o a un servicio como Formspree — ver README.md.</p>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p class="logo footer-logo">
+        fib<span class="logo-accent">studio</span>
+      </p>
+      <p class="mono footer-note">Fotografía de eventos y sesiones · hecha con la misma proporción de siempre.</p>
+      <p class="footer-copy">&copy; <span id="year"></span> FibStudio. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const navToggle = document.getElementById('navToggle');
+    const navList = document.getElementById('navList');
+    navToggle.addEventListener('click', () => {
+      const isOpen = navList.classList.toggle('is-open');
+      navToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+    navList.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        navList.classList.remove('is-open');
+        navToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  </script>
+</body>
+</html>
