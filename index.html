@@ -342,7 +342,7 @@
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
-
+ 
     const navToggle = document.getElementById('navToggle');
     const navList = document.getElementById('navList');
     navToggle.addEventListener('click', () => {
@@ -354,6 +354,51 @@
         navList.classList.remove('is-open');
         navToggle.setAttribute('aria-expanded', 'false');
       });
+    });
+ 
+    // Envío del formulario de contacto a Netlify Forms vía AJAX,
+    // para no recargar la página y mostrar un mensaje propio de confirmación.
+    const contactForm = document.getElementById('contactForm');
+    const formStatus = document.getElementById('formStatus');
+    const submitBtn = document.getElementById('submitBtn');
+ 
+    const encode = (data) =>
+      Object.keys(data)
+        .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
+        .join('&');
+ 
+    contactForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+ 
+      // Si el honeypot fue rellenado, es un bot: no enviamos nada.
+      const honeypot = contactForm.querySelector('input[name="empresa"]').value;
+      if (honeypot) return;
+ 
+      const formData = Object.fromEntries(new FormData(contactForm).entries());
+ 
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando…';
+      formStatus.textContent = '';
+      formStatus.classList.remove('is-error', 'is-success');
+ 
+      fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: encode(formData),
+      })
+        .then(() => {
+          formStatus.textContent = '¡Gracias! Tu mensaje fue enviado. Te responderemos en menos de 24 horas.';
+          formStatus.classList.add('is-success');
+          contactForm.reset();
+        })
+        .catch(() => {
+          formStatus.textContent = 'Hubo un problema al enviar tu mensaje. Intenta de nuevo o escríbenos directo por correo.';
+          formStatus.classList.add('is-error');
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Enviar mensaje';
+        });
     });
   </script>
 </body>
