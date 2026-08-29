@@ -272,7 +272,7 @@
             </li>
             <li>
               <span class="mono">whatsapp</span>
-              <a href="tel:+000000000">+593962377437</a>
+              <a href="tel:+593962377437">+593 96 237 7437</a>
             </li>
             <li>
               <span class="mono">instagram</span>
@@ -280,8 +280,24 @@
             </li>
           </ul>
         </div>
-
-        <form class="contact-form" action="#" method="post">
+ 
+        <form
+          class="contact-form"
+          id="contactForm"
+          name="contacto"
+          method="post"
+          data-netlify="true"
+          netlify-honeypot="empresa"
+          action="/gracias.html"
+        >
+          <!-- Campo oculto obligatorio para que Netlify identifique el formulario -->
+          <input type="hidden" name="form-name" value="contacto" />
+ 
+          <!-- Honeypot anti-spam: invisible para personas, los bots sí lo rellenan -->
+          <p class="hp-field" aria-hidden="true">
+            <label>No llenes este campo si eres humano: <input name="empresa" tabindex="-1" autocomplete="off" /></label>
+          </p>
+ 
           <div class="field">
             <label for="nombre">Nombre</label>
             <input type="text" id="nombre" name="nombre" autocomplete="name" required />
@@ -303,13 +319,15 @@
             <label for="mensaje">Cuéntanos tu idea</label>
             <textarea id="mensaje" name="mensaje" rows="4" required></textarea>
           </div>
-          <button type="submit" class="btn btn-primary btn-block">Enviar mensaje</button>
-          <p class="form-note">Este formulario es una plantilla estática. Conéctalo a tu correo o a un servicio como
-            Formspree — ver README.md.</p>
+ 
+          <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Enviar mensaje</button>
+ 
+          <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+          <p class="form-note">Al enviar este formulario, tus datos llegan directo a nuestro correo a través de Netlify Forms.</p>
         </form>
       </div>
-    </section>
-
+    </section>  
+      
   </main>
 
   <footer class="site-footer">
