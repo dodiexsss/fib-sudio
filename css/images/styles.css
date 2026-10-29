@@ -783,6 +783,29 @@ section {
   color: var(--text-dim);
 }
 
+.form-status {
+  min-height: 1.3em;
+  margin: 14px 0 0;
+  font-size: 0.88rem;
+}
+
+.form-status.is-success {
+  color: var(--gold);
+}
+
+.form-status.is-error {
+  color: var(--rust);
+}
+
+/* Honeypot anti-spam: fuera de la vista, pero presente para los bots. */
+.hp-field {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 /* =========================================================
    Footer
    ========================================================= */

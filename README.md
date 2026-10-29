@@ -8,11 +8,14 @@ Sitio web de una sola página (one-page) para **FibStudio**, un estudio de fotog
 
 ## Vista general
 
-- **Tipo de proyecto:** sitio estático (HTML + CSS + JavaScript vanilla).
+- **Tipo de proyecto:** sitio web + API REST (Node.js + Express) con **MongoDB**.
 - **Idioma:** español (`<html lang="es">`).
-- **Sin dependencias ni build:** se abre directamente en el navegador.
-- **Formulario de contacto:** preparado para **Netlify Forms**.
+- **Frontend:** HTML + CSS + JavaScript vanilla (sin build).
+- **Formulario de contacto:** guarda los mensajes en MongoDB; Netlify Forms queda como respaldo si la API no está disponible.
+- **Panel privado:** `/admin`, protegido con un token, para leer y gestionar los mensajes.
 - **Diseño:** responsive, tema oscuro con acentos en dorado, tipografía editorial.
+
+> 📚 Guía paso a paso de la base de datos, Atlas, despliegue y endpoints: **[BASE-DE-DATOS.md](BASE-DE-DATOS.md)**.
 
 ## Tecnologías
 
@@ -20,17 +23,36 @@ Sitio web de una sola página (one-page) para **FibStudio**, un estudio de fotog
 | --- | --- |
 | HTML5 semántico | Estructura del sitio |
 | CSS3 | Estilos, grid, animaciones, media queries |
-| JavaScript vanilla | Menú móvil, año del footer, envío del formulario |
+| JavaScript vanilla | Menú móvil, año del footer, galería, envío del formulario |
+| Node.js + Express | Servidor HTTP y API REST |
+| MongoDB + Mongoose | Base de datos y modelado (`mensajes`, `proyectos`) |
+| express-rate-limit | Límite anti-spam del formulario |
 | Google Fonts | `Fraunces` (títulos), `Public Sans` (texto), `JetBrains Mono` (etiquetas) |
 | SVG inline | Logo y espiral animada del hero |
-| Netlify Forms | Recepción de mensajes del formulario |
+| Netlify Forms | Respaldo opcional del formulario si no hay API |
 
 ## Estructura del proyecto
 
 ```
 pagina-claude/
-├── index.html                 # Todo el sitio en un solo archivo
+├── index.html                 # Sitio (una página)
+├── dashboard.html             # Panel privado de mensajes (/admin)
+├── package.json               # Dependencias y scripts
+├── .env.example               # Plantilla de variables de entorno
+├── BASE-DE-DATOS.md           # Guía de MongoDB, despliegue y API
 ├── README.md
+├── server/
+│   ├── index.js               # Arranque (conecta a Mongo y escucha)
+│   ├── app.js                 # Express: API, estáticos y errores
+│   ├── db.js                  # Conexión de Mongoose
+│   ├── seed.js                # Carga el portafolio inicial
+│   ├── data/proyectos.js      # Contenido semilla
+│   ├── middleware/            # Autenticación del panel
+│   ├── models/                # Mensaje y Proyecto
+│   ├── routes/                # contacto, mensajes, portafolio
+│   └── utils/
+├── test/
+│   └── api.test.js            # Pruebas de integración (Mongo en memoria)
 └── css/
     └── images/
         ├── styles.css         # Hoja de estilos principal
@@ -66,19 +88,32 @@ pagina-claude/
    cd pagina-claude
    ```
 
-2. Abre `index.html` en tu navegador (doble clic) o sirve la carpeta con cualquier servidor estático:
+2. Instala dependencias y configura la base de datos:
 
    ```bash
-   # Opción con Python
-   python -m http.server 8000
-
-   # Opción con Node
-   npx serve .
+   npm install
+   Copy-Item .env.example .env    # Windows (macOS/Linux: cp .env.example .env)
    ```
 
-3. Visita `http://localhost:8000`.
+   Edita `.env` con tu `MONGODB_URI` (Atlas o MongoDB local) y un `ADMIN_TOKEN`.
+   El detalle completo está en **[BASE-DE-DATOS.md](BASE-DE-DATOS.md)**.
 
-> El menú móvil, el año del footer y las animaciones funcionan sin servidor. El **envío del formulario solo funciona desplegado en Netlify** (ver abajo).
+3. Carga el portafolio inicial y arranca:
+
+   ```bash
+   npm run seed
+   npm run dev
+   ```
+
+4. Visita:
+
+   - Sitio: <http://localhost:3000>
+   - Panel de mensajes: <http://localhost:3000/admin>
+
+> El sitio también se puede abrir como archivo estático (`index.html`) o servir con
+> `python -m http.server`. En ese caso el menú, las animaciones y la galería
+> estática funcionan, pero el formulario no guarda mensajes: necesitas el servidor
+> Express y MongoDB.
 
 ## Personalización
 
@@ -100,6 +135,23 @@ En `index.html`, cada foto es un `<figure class="gallery-item">` con:
 - La clase `span-2` hace que la imagen ocupe dos columnas en el grid.
 - Para añadir más fotos, copia un bloque y ajusta `src`, `alt`, `figcaption` y la historia del overlay.
 - Varios textos del portafolio siguen siendo marcadores de posición ("Escribe aquí la historia...").
+
+**Con la API funcionando**, la galería se carga desde MongoDB
+(`GET /api/portafolio`) y reemplaza ese HTML. Los proyectos viven en la colección
+`proyectos` y se cargan con `npm run seed` desde `server/data/proyectos.js`.
+Para cambiar una foto o su historia, edita ese archivo y vuelve a ejecutar
+`npm run seed`, o usa las rutas privadas `POST/PATCH/DELETE /api/portafolio`.
+Si la API no responde, se conserva el HTML estático como respaldo.
+
+### Mensajes recibidos
+
+- Panel: <http://localhost:3000/admin> (o la URL de la API + `/admin`).
+- Se entra con el valor de `ADMIN_TOKEN` definido en `.env`; se guarda solo en
+  `sessionStorage` de esa pestaña.
+- Desde el panel puedes marcar mensajes como nuevos, leídos o respondidos,
+  escribir al cliente y eliminar mensajes.
+- Los datos también se pueden consultar con `GET /api/mensajes` usando el header
+  `x-admin-token`.
 
 ### Datos de contacto
 
@@ -132,20 +184,32 @@ Cambiar estos valores actualiza el tema completo.
 
 ## Formulario de contacto
 
-El formulario (`#contactForm`) está configurado para **Netlify Forms**:
+El formulario (`#contactForm`) envía los datos a `POST /api/contacto` y el
+servidor los guarda en MongoDB:
 
-- `data-netlify="true"` y el campo oculto `form-name=contacto`.
-- **Honeypot anti-spam:** un campo invisible llamado `empresa`; si un bot lo rellena, el envío se descarta silenciosamente.
-- **Envío con `fetch`**: el JavaScript intercepta el `submit`, envía los datos como `application/x-www-form-urlencoded` a `/` y muestra un mensaje de estado sin recargar la página.
-- Estados del mensaje: `.is-success` e `.is-error` (la clase base es `.form-status`).
-- Si el envío falla, se sugiere escribir por correo.
+- **Validación doble:** HTML en el navegador y esquema de Mongoose en el servidor.
+- **Honeypot anti-spam:** campo invisible `empresa`; si un bot lo rellena, el
+  servidor responde con éxito pero no guarda nada.
+- **Rate limit:** máximo 5 envíos cada 15 minutos por IP.
+- **Envío con `fetch`:** sin recargar la página; estados `.is-success` e
+  `.is-error` sobre `.form-status`.
+- **Respaldo Netlify Forms:** si la API no está disponible (por ejemplo, un
+  despliegue solo estático en Netlify), el JavaScript reintenta el envío clásico
+  a `/` con `application/x-www-form-urlencoded`. Los atributos
+  `data-netlify="true"` y `form-name=contacto` se mantienen para eso.
+- **API en otro dominio:** si el frontend está en Netlify y la API en Render,
+  configura `<meta name="fibstudio-api" content="https://tu-api...">` en el
+  `<head>` de `index.html` y define `CORS_ORIGIN` en el servidor.
 
 ### Pasos para activarlo
 
-1. Desplegar el sitio en Netlify (arrastrar la carpeta o conectar el repositorio).
-2. En el panel de Netlify, ir a **Forms** y comprobar que aparece el formulario `contacto`.
-3. Configurar las notificaciones por correo en **Forms → Notifications**.
-4. Opcional: definir la página de agradecimiento. El atributo `action="/gracias.html"` apunta a una página que **todavía no existe**; si no la creas, el envío por `fetch` seguirá funcionando, pero conviene añadirla o cambiar la ruta.
+1. Configura `MONGODB_URI` y `ADMIN_TOKEN` (ver [BASE-DE-DATOS.md](BASE-DE-DATOS.md)).
+2. Arranca con `npm run dev` y envía una prueba desde el sitio.
+3. Entra a `/admin` y comprueba que el mensaje aparece como **Nuevo**.
+4. Opcional: para Netlify Forms, despliega también en Netlify y activa las
+   notificaciones en **Forms → Notifications**. El atributo `action="/gracias.html"`
+   apunta a una página que **todavía no existe**; si no la creas, el envío por
+   `fetch` sigue funcionando, pero conviene añadirla o cambiar la ruta.
 
 ## Accesibilidad
 
@@ -171,22 +235,40 @@ Los puntos de quiebre están en `styles.css`:
 
 - Imágenes con `loading="lazy"`.
 - Formatos mixtos (`.jpg`, `.avif`).
-- Sin frameworks ni librerías externas más allá de las fuentes.
+- Sin frameworks ni librerías externas en el frontend más allá de las fuentes.
+- Índices de MongoDB en `createdAt`, `estado` y `activo/orden`.
+- La API limita el listado a los 200 mensajes más recientes.
 
 Ideas de mejora: convertir todas las imágenes al mismo formato (WebP/AVIF), usar `srcset`, comprimir los archivos y precargar la imagen principal del hero si se añade una.
 
 ## Despliegue
 
-### Netlify (recomendado)
+La guía completa (Atlas, variables, Render, Netlify) está en
+**[BASE-DE-DATOS.md](BASE-DE-DATOS.md)**. Resumen:
 
-Es la opción para la que está preparado el formulario.
+### Todo en un servicio (recomendado)
 
-- **Drag & drop:** arrastra la carpeta del proyecto a Netlify Drop.
-- **Git:** conecta el repositorio `dodiexsss/pagina-claude`; no requiere comando de build ni carpeta de publicación distinta de la raíz.
+Render, Railway o Fly.io ejecutan el repositorio completo:
+
+- **Build:** `npm install`
+- **Start:** `npm start`
+- **Variables:** `MONGODB_URI`, `ADMIN_TOKEN` (y `CORS_ORIGIN` si hace falta)
+- Sitio en la URL del servicio, panel en `/admin`.
+
+### Netlify (solo frontend)
+
+Netlify sirve muy bien el sitio, pero no ejecuta Node ni MongoDB:
+
+- Conecta el repositorio `dodiexsss/pagina-claude` sin comando de build.
+- Configura la meta etiqueta `fibstudio-api` con la URL de la API y añade esa
+  URL a `CORS_ORIGIN` en el servidor.
+- Si no hay API, el formulario cae en Netlify Forms y los mensajes no se guardan
+  en MongoDB.
 
 ### GitHub Pages
 
-También sirve como sitio estático, pero **el formulario no enviará mensajes** (Netlify Forms no está disponible allí).
+Sirve como sitio estático, pero no hay API ni base de datos: el formulario no
+guarda mensajes.
 
 ## Ramas del repositorio
 
@@ -215,6 +297,9 @@ d5696a0 agregue css y HTML
 - Unificar la ubicación de `styles.css` e imágenes dentro de `css/images/`.
 - El archivo `css/images/marca` no tiene extensión y no se usa en el HTML; puede eliminarse o renombrarse.
 - Hay reglas CSS duplicadas (`.gallery-item figcaption` y `.gallery-item figcaption .mono`) y bloques de placeholders (`.ph-*`) sin uso que se pueden limpiar.
+- Añadir notificaciones por correo al recibir un mensaje (hoy solo se ven en `/admin`).
+- Sustituir el token compartido por autenticación con usuarios si el equipo crece.
+- Subir las imágenes del portafolio a un CDN (Cloudinary/S3) en lugar de servir archivos locales.
 
 ---
 

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>FibStudio — Panel de mensajes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #15130f;
+      --bg-alt: #1d1a15;
+      --surface: #221e18;
+      --text: #f3ede2;
+      --text-dim: #b7ac9a;
+      --gold: #c9a24b;
+      --rust: #b8654f;
+      --line: rgba(243, 237, 226, 0.12);
+      --font-display: "Fraunces", serif;
+      --font-body: "Public Sans", system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      line-height: 1.55;
+    }
+
+    h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .wrap { width: min(1080px, calc(100% - 40px)); margin: 0 auto; }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      padding: 18px 0;
+    }
+
+    .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+
+    .logo { font-family: var(--font-display); font-size: 1.1rem; margin: 0; }
+    .logo span { color: var(--gold); }
+
+    .header-right { display: flex; align-items: center; gap: 14px; }
+
+    #connState { color: var(--text-dim); }
+    #connState::before {
+      content: "";
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    #connState.ok::before { background: #6f8f5f; }
+    #connState.bad::before { background: var(--rust); }
+
+    main { padding: 48px 0 72px; }
+
+    .login-card {
+      max-width: 440px;
+      margin: 4vh auto 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 36px;
+    }
+
+    .login-card p { color: var(--text-dim); font-size: 0.92rem; }
+
+    label { display: block; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 8px; }
+
+    input[type="password"], select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 12px 14px;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      border-radius: 2px;
+    }
+
+    input:focus-visible, select:focus-visible, button:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    button {
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      width: 100%;
+      margin-top: 18px;
+      padding: 12px 18px;
+      background: var(--gold);
+      color: #15130f;
+      border: 1px solid var(--gold);
+      font-weight: 600;
+    }
+
+    .btn-primary:hover { background: #d8b05a; }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 8px 14px;
+    }
+
+    .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+    .error { color: var(--rust); font-size: 0.86rem; margin-top: 14px; min-height: 1.2em; }
+
+    .toolbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+    .toolbar h1 { font-size: clamp(1.6rem, 3vw, 2.2rem); }
+    .toolbar-actions { display: flex; gap: 10px; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 16px;
+    }
+
+    .stat strong { display: block; font-family: var(--font-display); font-size: 1.6rem; font-weight: 500; }
+    .stat span { color: var(--text-dim); font-size: 0.8rem; }
+
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+
+    .filter {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text-dim);
+      padding: 6px 14px;
+      font-size: 0.82rem;
+    }
+
+    .filter:hover { color: var(--text); }
+    .filter.is-active { border-color: var(--gold); color: var(--gold); }
+
+    .message {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--line);
+      padding: 22px 24px;
+      margin-bottom: 12px;
+    }
+
+    .message.is-nuevo { border-left-color: var(--gold); }
+
+    .message-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .message-name { font-family: var(--font-display); font-size: 1.15rem; }
+
+    .message-meta {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      padding: 1px 8px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .message-body { color: var(--text-dim); white-space: pre-wrap; margin: 0 0 16px; }
+
+    .message-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .message-actions select { width: auto; padding: 6px 10px; font-size: 0.82rem; }
+    .message-actions a, .message-delete {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      background: none;
+      border: none;
+      padding: 4px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .message-actions a:hover { color: var(--gold); }
+    .message-delete:hover { color: var(--rust); }
+
+    .empty {
+      border: 1px dashed var(--line);
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--text-dim);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      background: var(--surface);
+      border: 1px solid var(--gold);
+      color: var(--text);
+      padding: 10px 18px;
+      font-size: 0.85rem;
+      border-radius: 2px;
+    }
+
+    @media (max-width: 720px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .login-card { padding: 24px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="wrap header-inner">
+      <p class="logo">fib<span>studio</span> <span class="mono">/ panel</span></p>
+      <div class="header-right">
+        <span id="connState" class="mono">sin sesión</span>
+        <button type="button" class="btn-ghost" id="logoutBtn" hidden>Cerrar sesión</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="login-card" id="loginView">
+      <p class="mono">acceso privado</p>
+      <h1>Panel de mensajes</h1>
+      <p>Introduce el <code>ADMIN_TOKEN</code> que configuraste en el archivo <code>.env</code> del servidor.</p>
+      <form id="loginForm">
+        <label for="token">Token de administración</label>
+        <input type="password" id="token" autocomplete="current-password" required />
+        <button type="submit" class="btn-primary">Entrar</button>
+        <p class="error" id="loginError" role="alert"></p>
+      </form>
+    </section>
+
+    <section id="panelView" hidden>
+      <div class="toolbar">
+        <div>
+          <p class="mono">bandeja de entrada</p>
+          <h1>Mensajes recibidos</h1>
+        </div>
+        <div class="toolbar-actions">
+          <button type="button" class="btn-ghost" id="refreshBtn">Actualizar</button>
+        </div>
+      </div>
+
+      <div class="stats" id="stats"></div>
+
+      <div class="filters" role="group" aria-label="Filtrar por estado">
+        <button type="button" class="filter is-active" data-estado="">Todos</button>
+        <button type="button" class="filter" data-estado="nuevo">Nuevos</button>
+        <button type="button" class="filter" data-estado="leido">Leídos</button>
+        <button type="button" class="filter" data-estado="respondido">Respondidos</button>
+      </div>
+
+      <div id="messages"></div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script>
+    const API = window.FIBSTUDIO_API || '';
+    const TOKEN_KEY = 'fibstudio_admin_token';
+
+    const loginView = document.getElementById('loginView');
+    const panelView = document.getElementById('panelView');
+    const loginForm = document.getElementById('loginForm');
+    const tokenInput = document.getElementById('token');
+    const loginError = document.getElementById('loginError');
+    const messagesEl = document.getElementById('messages');
+    const statsEl = document.getElementById('stats');
+    const connState = document.getElementById('connState');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const toast = document.getElementById('toast');
+
+    let token = sessionStorage.getItem(TOKEN_KEY) || '';
+    let filtroEstado = '';
+
+    const formatearFecha = (iso) =>
+      new Intl.DateTimeFormat('es-EC', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
+
+    let toastTimer;
+    function avisar(texto) {
+      toast.textContent = texto;
+      toast.hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.hidden = true; }, 2600);
+    }
+
+    async function api(ruta, opciones = {}) {
+      const res = await fetch(API + ruta, {
+        ...opciones,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': token,
+          ...(opciones.headers || {}),
+        },
+      });
+
+      if (res.status === 401) {
+        cerrarSesion('Tu sesión expiró o el token no es válido.');
+        throw new Error('No autorizado');
+      }
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Error de conexión con la API');
+      return data;
+    }
+
+    function mostrarPanel() {
+      loginView.hidden = true;
+      panelView.hidden = false;
+      logoutBtn.hidden = false;
+      connState.textContent = 'sesión activa';
+      connState.className = 'mono ok';
+    }
+
+    function cerrarSesion(mensaje = '') {
+      token = '';
+      sessionStorage.removeItem(TOKEN_KEY);
+      panelView.hidden = true;
+      loginView.hidden = false;
+      logoutBtn.hidden = true;
+      connState.textContent = 'sin sesión';
+      connState.className = 'mono';
+      loginError.textContent = mensaje;
+      tokenInput.value = '';
+    }
+
+    function crearBoton(texto, clase, onClick) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = texto;
+      if (clase) b.className = clase;
+      b.addEventListener('click', onClick);
+      return b;
+    }
+
+    function renderMensajes(mensajes) {
+      messagesEl.replaceChildren();
+
+      if (!mensajes.length) {
+        const vacio = document.createElement('p');
+        vacio.className = 'empty';
+        vacio.textContent = 'No hay mensajes en esta vista.';
+        messagesEl.append(vacio);
+        return;
+      }
+
+      for (const m of mensajes) {
+        const card = document.createElement('article');
+        card.className = 'message is-' + m.estado;
+
+        const head = document.createElement('div');
+        head.className = 'message-head';
+
+        const nombre = document.createElement('span');
+        nombre.className = 'message-name';
+        nombre.textContent = m.nombre;
+
+        const meta = document.createElement('div');
+        meta.className = 'message-meta';
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = m.servicio;
+        const fecha = document.createElement('span');
+        fecha.textContent = formatearFecha(m.createdAt);
+        meta.append(chip, fecha);
+
+        head.append(nombre, meta);
+
+        const cuerpo = document.createElement('p');
+        cuerpo.className = 'message-body';
+        cuerpo.textContent = m.mensaje;
+
+        const acciones = document.createElement('div');
+        acciones.className = 'message-actions';
+
+        const correo = document.createElement('a');
+        correo.href = 'mailto:' + encodeURIComponent(m.email) +
+          '?subject=' + encodeURIComponent('Re: tu mensaje a FibStudio');
+        correo.textContent = m.email;
+
+        const selector = document.createElement('select');
+        selector.setAttribute('aria-label', 'Estado del mensaje de ' + m.nombre);
+        for (const [valor, etiqueta] of [
+          ['nuevo', 'Nuevo'],
+          ['leido', 'Leído'],
+          ['respondido', 'Respondido'],
+        ]) {
+          const opcion = document.createElement('option');
+          opcion.value = valor;
+          opcion.textContent = etiqueta;
+          opcion.selected = m.estado === valor;
+          selector.append(opcion);
+        }
+        selector.addEventListener('change', async () => {
+          try {
+            await api('/api/mensajes/' + m._id, {
+              method: 'PATCH',
+              body: JSON.stringify({ estado: selector.value }),
+            });
+            avisar('Estado actualizado.');
+            cargarTodo();
+          } catch (error) {
+            avisar(error.message);
+            selector.value = m.estado;
+          }
+        });
+
+        const borrar = crearBoton('Eliminar', 'message-delete', async () => {
+          if (!confirm('¿Eliminar el mensaje de ' + m.nombre + '? Esta acción no se puede deshacer.')) return;
+          try {
+            await api('/api/mensajes/' + m._id, { method: 'DELETE' });
+            avisar('Mensaje eliminado.');
+            cargarTodo();
+          } catch (error) {
+            avisar(error.message);
+          }
+        });
+
+        acciones.append(correo, selector, borrar);
+        card.append(head, cuerpo, acciones);
+        messagesEl.append(card);
+      }
+    }
+
+    function renderStats(stats) {
+      const datos = [
+        ['Total', stats.total],
+        ['Nuevos', stats.nuevo],
+        ['Leídos', stats.leido],
+        ['Respondidos', stats.respondido],
+      ];
+
+      statsEl.replaceChildren();
+      for (const [etiqueta, valor] of datos) {
+        const div = document.createElement('div');
+        div.className = 'stat';
+        const strong = document.createElement('strong');
+        strong.textContent = valor;
+        const span = document.createElement('span');
+        span.textContent = etiqueta;
+        div.append(strong, span);
+        statsEl.append(div);
+      }
+    }
+
+    async function cargarTodo() {
+      if (!token) return;
+      try {
+        const [stats, mensajes] = await Promise.all([
+          api('/api/mensajes/stats'),
+          api('/api/mensajes' + (filtroEstado ? '?estado=' + filtroEstado : '')),
+        ]);
+        renderStats(stats);
+        renderMensajes(mensajes);
+      } catch (error) {
+        if (error.message !== 'No autorizado') avisar(error.message);
+      }
+    }
+
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      loginError.textContent = '';
+      token = tokenInput.value.trim();
+
+      if (!token) {
+        loginError.textContent = 'Escribe el token.';
+        return;
+      }
+
+      try {
+        await api('/api/mensajes/stats');
+        sessionStorage.setItem(TOKEN_KEY, token);
+        mostrarPanel();
+        cargarTodo();
+      } catch (error) {
+        if (error.message !== 'No autorizado') {
+          loginError.textContent = 'No se pudo conectar con la API. ¿Está corriendo el servidor?';
+        }
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => cerrarSesion());
+    document.getElementById('refreshBtn').addEventListener('click', cargarTodo);
+
+    document.querySelectorAll('.filter').forEach((boton) => {
+      boton.addEventListener('click', () => {
+        document.querySelectorAll('.filter').forEach((b) => b.classList.remove('is-active'));
+        boton.classList.add('is-active');
+        filtroEstado = boton.dataset.estado;
+        cargarTodo();
+      });
+    });
+
+    // Si ya había un token en la pestaña, intenta entrar directo.
+    if (token) {
+      api('/api/mensajes/stats')
+        .then(() => {
+          mostrarPanel();
+          cargarTodo();
+        })
+        .catch((error) => {
+          // Un 401 ya mostró su propio mensaje en cerrarSesion().
+          if (error.message !== 'No autorizado') {
+            cerrarSesion('No se pudo conectar con la API. Revisa que el servidor esté corriendo.');
+          }
+        });
+    }
+  </script>
+</body>
+
+</html>

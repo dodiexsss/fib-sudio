@@ -7,6 +7,10 @@
   <title>FibStudio — Fotografía que crea sentimientos</title>
   <meta name="description"
     content="FibStudio: fotografía de eventos y sesiones que captura lo que sentiste, no solo lo que viste." />
+  <!-- URL de la API (Express + MongoDB).
+       Vacío = mismo dominio donde se sirve el sitio.
+       Si el frontend está en Netlify y la API en Render/Railway, escribe aquí la URL. -->
+  <meta name="fibstudio-api" content="" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -323,7 +327,7 @@
           <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Enviar mensaje</button>
  
           <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
-          <p class="form-note">Al enviar este formulario, tus datos llegan directo a nuestro correo a través de Netlify Forms.</p>
+          <p class="form-note">Tus datos se guardan en nuestra base de datos y llegan directo al estudio. No los compartimos con terceros.</p>
         </form>
       </div>
     </section>  
@@ -356,49 +360,145 @@
       });
     });
  
-    // esto envia el formulario al netlify.
-    // para no recargar la página y mostrar un mensaje propio de confirmación.
+    // ==========================================================
+    // API (Express + MongoDB).
+    // API_BASE vacío = mismo dominio. Si el sitio vive en Netlify y la
+    // API en otro host, configura la meta etiqueta "fibstudio-api".
+    // ==========================================================
+    const API_BASE = (document.querySelector('meta[name="fibstudio-api"]')?.content || '')
+      .trim()
+      .replace(/\/+$/, '');
+
+    // ---------- Portafolio desde la base de datos ----------
+    // Si la API no responde (sitio 100% estático), se conserva el HTML original.
+    const gallery = document.querySelector('.gallery');
+
+    function crearProyecto(proyecto) {
+      const figure = document.createElement('figure');
+      figure.className = 'gallery-item' + (proyecto.span2 ? ' span-2' : '');
+      figure.setAttribute('role', 'listitem');
+
+      const img = document.createElement('img');
+      img.src = proyecto.imagen;
+      img.alt = proyecto.alt;
+      img.loading = 'lazy';
+
+      const caption = document.createElement('figcaption');
+      const mono = document.createElement('span');
+      mono.className = 'mono';
+      mono.textContent = proyecto.categoria + ' /';
+      caption.append(mono, ' ' + proyecto.titulo);
+
+      const overlay = document.createElement('div');
+      overlay.className = 'gallery-overlay';
+      const eyebrow = document.createElement('p');
+      eyebrow.className = 'gallery-overlay-eyebrow mono';
+      eyebrow.textContent = 'la historia';
+      const texto = document.createElement('p');
+      texto.className = 'gallery-overlay-text';
+      texto.textContent = proyecto.historia || '';
+      overlay.append(eyebrow, texto);
+
+      figure.append(img, caption, overlay);
+      return figure;
+    }
+
+    async function cargarPortafolio() {
+      if (!gallery) return;
+      try {
+        const respuesta = await fetch(API_BASE + '/api/portafolio');
+        if (!respuesta.ok) return;
+        const proyectos = await respuesta.json();
+        if (!Array.isArray(proyectos) || proyectos.length === 0) return;
+        gallery.replaceChildren(...proyectos.map(crearProyecto));
+      } catch {
+        // Sin API disponible: se queda la galería escrita en el HTML.
+      }
+    }
+
+    cargarPortafolio();
+
+    // ---------- Formulario de contacto ----------
     const contactForm = document.getElementById('contactForm');
     const formStatus = document.getElementById('formStatus');
     const submitBtn = document.getElementById('submitBtn');
- 
+
     const encode = (data) =>
       Object.keys(data)
         .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
         .join('&');
- 
-    contactForm.addEventListener('submit', function (e) {
+
+    function mostrarEstado(texto, tipo) {
+      formStatus.textContent = texto;
+      formStatus.classList.remove('is-error', 'is-success');
+      if (tipo) formStatus.classList.add('is-' + tipo);
+    }
+
+    // Guarda en MongoDB. Devuelve false si la API no existe (sitio sólo estático)
+    // para poder intentar el envío clásico de Netlify Forms.
+    async function guardarEnMongo(datos) {
+      let respuesta;
+      try {
+        respuesta = await fetch(API_BASE + '/api/contacto', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(datos),
+        });
+      } catch {
+        return false;
+      }
+
+      if (respuesta.ok) return true;
+
+      // 404/405/5xx: la API no está disponible en este despliegue.
+      if ([404, 405].includes(respuesta.status) || respuesta.status >= 502) return false;
+
+      const data = await respuesta.json().catch(() => ({}));
+      const detalle = data.detalles ? Object.values(data.detalles)[0] : data.error;
+      const error = new Error(detalle || 'No se pudo guardar el mensaje.');
+      error.definitivo = true;
+      throw error;
+    }
+
+    async function enviarANetlify(datos) {
+      const respuesta = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: encode(datos),
+      });
+      if (!respuesta.ok) throw new Error('Netlify Forms no disponible');
+    }
+
+    contactForm.addEventListener('submit', async (e) => {
       e.preventDefault();
- 
+
       // Si el honeypot fue rellenado, es un bot: no enviamos nada.
       const honeypot = contactForm.querySelector('input[name="empresa"]').value;
       if (honeypot) return;
- 
-      const formData = Object.fromEntries(new FormData(contactForm).entries());
- 
+
+      const datos = Object.fromEntries(new FormData(contactForm).entries());
+
       submitBtn.disabled = true;
       submitBtn.textContent = 'Enviando…';
-      formStatus.textContent = '';
-      formStatus.classList.remove('is-error', 'is-success');
- 
-      fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: encode(formData),
-      })
-        .then(() => {
-          formStatus.textContent = '¡Gracias! Tu mensaje fue enviado. Te responderemos en menos de 24 horas.';
-          formStatus.classList.add('is-success');
-          contactForm.reset();
-        })
-        .catch(() => {
-          formStatus.textContent = 'Hubo un problema al enviar tu mensaje. Intenta de nuevo o escríbenos directo por correo.';
-          formStatus.classList.add('is-error');
-        })
-        .finally(() => {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Enviar mensaje';
-        });
+      mostrarEstado('', '');
+
+      try {
+        const guardado = await guardarEnMongo(datos);
+        if (!guardado) await enviarANetlify(datos);
+
+        mostrarEstado('¡Gracias! Tu mensaje fue enviado. Te responderemos en menos de 24 horas.', 'success');
+        contactForm.reset();
+      } catch (error) {
+        mostrarEstado(
+          error.definitivo
+            ? error.message
+            : 'Hubo un problema al enviar tu mensaje. Intenta de nuevo o escríbenos directo por correo.',
+          'error'
+        );
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Enviar mensaje';
+      }
     });
   </script>
 </body>
