@@ -137,7 +137,7 @@
             <figcaption><span class="mono">sesiones /</span> Retrato natural</figcaption>
             <div class="gallery-overlay">
               <p class="gallery-overlay-eyebrow mono">la historia</p>
-              <p class="gallery-overlay-text">Escribe aquí la historia real de esta sesión.</p>
+              <p class="gallery-overlay-text">ella no se sentía segura de si misma, le ofrecimos cambiar eso.</p>
             </div>
           </figure>
 
@@ -146,7 +146,7 @@
             <figcaption><span class="mono">eventos /</span> Reunión familiar</figcaption>
             <div class="gallery-overlay">
               <p class="gallery-overlay-eyebrow mono">la historia</p>
-              <p class="gallery-overlay-text">Escribe aquí la historia real de este evento.</p>
+              <p class="gallery-overlay-text">llegó un nuevo miembro a la familia.</p>
             </div>
           </figure>
 
@@ -155,7 +155,7 @@
             <figcaption><span class="mono">sesiones /</span> Pareja, amanecer</figcaption>
             <div class="gallery-overlay">
               <p class="gallery-overlay-eyebrow mono">la historia</p>
-              <p class="gallery-overlay-text">Escribe aquí la historia real de esta sesión.</p>
+              <p class="gallery-overlay-text">querian inmortalizar aquel momento juntos.</p>
             </div>
           </figure>
 
@@ -164,7 +164,7 @@
             <figcaption><span class="mono">eventos /</span> Lanzamiento de marca</figcaption>
             <div class="gallery-overlay">
               <p class="gallery-overlay-eyebrow mono">la historia</p>
-              <p class="gallery-overlay-text">Escribe aquí la historia real de este lanzamiento.</p>
+              <p class="gallery-overlay-text">un nuevo producto de la empresa que buscaban compartir al mundo.</p>
             </div>
           </figure>
         </div>
@@ -292,7 +292,7 @@
           method="post"
           data-netlify="true"
           netlify-honeypot="empresa"
-          action="/gracias.html"
+          action="gracias.html"
         >
           <!-- Campo oculto obligatorio para que Netlify identifique el formulario -->
           <input type="hidden" name="form-name" value="contacto" />
@@ -360,17 +360,11 @@
       });
     });
  
-    // ==========================================================
-    // API (Express + MongoDB).
-    // API_BASE vacío = mismo dominio. Si el sitio vive en Netlify y la
-    // API en otro host, configura la meta etiqueta "fibstudio-api".
-    // ==========================================================
     const API_BASE = (document.querySelector('meta[name="fibstudio-api"]')?.content || '')
       .trim()
       .replace(/\/+$/, '');
 
     // ---------- Portafolio desde la base de datos ----------
-    // Si la API no responde (sitio 100% estático), se conserva el HTML original.
     const gallery = document.querySelector('.gallery');
 
     function crearProyecto(proyecto) {

@@ -289,13 +289,9 @@ d5696a0 agregue css y HTML
 
 ## Pendientes / notas conocidas
 
-- Sustituir las imágenes de ejemplo por fotografías reales del estudio.
-- Completar las historias del portafolio que aún son texto de relleno.
 - Crear `gracias.html` o ajustar el `action` del formulario.
 - Revisar el correo, teléfono e Instagram definitivos.
 - Actualizar el enlace de Instagram (actualmente apunta a la home de Instagram).
-- Unificar la ubicación de `styles.css` e imágenes dentro de `css/images/`.
-- El archivo `css/images/marca` no tiene extensión y no se usa en el HTML; puede eliminarse o renombrarse.
 - Hay reglas CSS duplicadas (`.gallery-item figcaption` y `.gallery-item figcaption .mono`) y bloques de placeholders (`.ph-*`) sin uso que se pueden limpiar.
 - Añadir notificaciones por correo al recibir un mensaje (hoy solo se ven en `/admin`).
 - Sustituir el token compartido por autenticación con usuarios si el equipo crece.
