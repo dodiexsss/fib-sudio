@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { Mensaje } from '../models/Mensaje.js';
+import { enviarBienvenida } from '../email/index.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 const router = Router();
@@ -42,10 +43,33 @@ router.post(
       userAgent: (req.get('user-agent') || '').slice(0, 300),
     });
 
+    // Correo automático de bienvenida. Si el proveedor falla o no está
+    // configurado, el mensaje ya quedó guardado y el formulario responde OK.
+    let correo = 'omitido';
+    try {
+      const resultado = await enviarBienvenida({
+        nombre: doc.nombre,
+        email: doc.email,
+        servicio: doc.servicio,
+        mensaje: doc.mensaje,
+      });
+      if (resultado.enviado) correo = 'enviado';
+    } catch (error) {
+      correo = 'error';
+      console.error(
+        `[contacto] No se pudo enviar el correo de bienvenida a ${doc.email}:`,
+        error.message
+      );
+    }
+
     return res.status(201).json({
       ok: true,
       id: doc._id,
-      mensaje: 'Mensaje guardado correctamente.',
+      correo,
+      mensaje:
+        correo === 'enviado'
+          ? 'Mensaje guardado. Te enviamos un correo con la información.'
+          : 'Mensaje guardado correctamente.',
     });
   })
 );

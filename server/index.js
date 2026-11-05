@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { createApp } from './app.js';
 import { connectDB, disconnectDB } from './db.js';
+import { correoConfigurado } from './email/index.js';
 
 const port = Number(process.env.PORT) || 3000;
 
@@ -11,6 +12,12 @@ try {
   const server = app.listen(port, () => {
     console.log(`[web] FibStudio en http://localhost:${port}`);
     console.log(`[web] Panel privado en http://localhost:${port}/admin`);
+
+    if (!correoConfigurado()) {
+      console.warn(
+        '[email] Correo de bienvenida sin configurar: define RESEND_API_KEY o SMTP_HOST + SMTP_USER + SMTP_PASS en .env.'
+      );
+    }
   });
 
   const cerrar = async (senal) => {

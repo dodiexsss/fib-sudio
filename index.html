@@ -276,13 +276,20 @@
             </li>
             <li>
               <span class="mono">whatsapp</span>
-              <a href="tel:+593962377437">+593 96 237 7437</a>
+              <a href="https://wa.me/593962377437?text=Hola%20FibStudio%2C%20quiero%20agendar%20una%20asesor%C3%ADa%20personalizada."
+                data-whatsapp target="_blank" rel="noopener">+593 96 237 7437</a>
             </li>
             <li>
               <span class="mono">instagram</span>
               <a href="https://instagram.com" target="_blank" rel="noopener">@fibstudio</a>
             </li>
           </ul>
+
+          <a class="btn btn-outline contact-whatsapp"
+            href="https://wa.me/593962377437?text=Hola%20FibStudio%2C%20quiero%20agendar%20una%20asesor%C3%ADa%20personalizada."
+            data-whatsapp target="_blank" rel="noopener">
+            Asesoría personalizada por WhatsApp
+          </a>
         </div>
  
         <form
@@ -327,6 +334,16 @@
           <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Enviar mensaje</button>
  
           <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+
+          <div class="form-success" id="formSuccess" hidden>
+            <p id="formSuccessText"></p>
+            <a class="btn btn-outline btn-block"
+              href="https://wa.me/593962377437?text=Hola%20FibStudio%2C%20acabo%20de%20enviar%20el%20formulario%20y%20quiero%20agendar%20mi%20asesor%C3%ADa%20personalizada."
+              data-whatsapp target="_blank" rel="noopener">
+              Agendar mi asesoría por WhatsApp
+            </a>
+          </div>
+
           <p class="form-note">Tus datos se guardan en nuestra base de datos y llegan directo al estudio. No los compartimos con terceros.</p>
         </form>
       </div>
@@ -363,6 +380,21 @@
     const API_BASE = (document.querySelector('meta[name="fibstudio-api"]')?.content || '')
       .trim()
       .replace(/\/+$/, '');
+
+    // ---------- WhatsApp ----------
+    // Cambia aquí tu número (código de país, sin + ni espacios) y los mensajes
+    // que se abren al tocar los botones de WhatsApp del sitio.
+    const WHATSAPP_NUMERO = '593962377437';
+    const WHATSAPP_MENSAJE = 'Hola FibStudio, quiero agendar una asesoría personalizada.';
+    const WHATSAPP_MENSAJE_GRACIAS =
+      'Hola FibStudio, acabo de enviar el formulario y quiero agendar mi asesoría personalizada.';
+    const enlaceWhatsapp = (mensaje) =>
+      'https://wa.me/' + WHATSAPP_NUMERO + '?text=' + encodeURIComponent(mensaje);
+
+    document.querySelectorAll('[data-whatsapp]').forEach((enlace) => {
+      const enFormulario = Boolean(enlace.closest('#formSuccess'));
+      enlace.href = enlaceWhatsapp(enFormulario ? WHATSAPP_MENSAJE_GRACIAS : WHATSAPP_MENSAJE);
+    });
 
     // ---------- Portafolio desde la base de datos ----------
     const gallery = document.querySelector('.gallery');
@@ -415,6 +447,8 @@
     // ---------- Formulario de contacto ----------
     const contactForm = document.getElementById('contactForm');
     const formStatus = document.getElementById('formStatus');
+    const formSuccess = document.getElementById('formSuccess');
+    const formSuccessText = document.getElementById('formSuccessText');
     const submitBtn = document.getElementById('submitBtn');
 
     const encode = (data) =>
@@ -428,7 +462,7 @@
       if (tipo) formStatus.classList.add('is-' + tipo);
     }
 
-    // Guarda en MongoDB. Devuelve false si la API no existe (sitio sólo estático)
+    // Guarda en MongoDB. Devuelve null si la API no existe (sitio sólo estático)
     // para poder intentar el envío clásico de Netlify Forms.
     async function guardarEnMongo(datos) {
       let respuesta;
@@ -439,13 +473,16 @@
           body: JSON.stringify(datos),
         });
       } catch {
-        return false;
+        return null;
       }
 
-      if (respuesta.ok) return true;
+      if (respuesta.ok) {
+        const data = await respuesta.json().catch(() => ({}));
+        return { correoEnviado: data.correo === 'enviado' };
+      }
 
       // 404/405/5xx: la API no está disponible en este despliegue.
-      if ([404, 405].includes(respuesta.status) || respuesta.status >= 502) return false;
+      if ([404, 405].includes(respuesta.status) || respuesta.status >= 502) return null;
 
       const data = await respuesta.json().catch(() => ({}));
       const detalle = data.detalles ? Object.values(data.detalles)[0] : data.error;
@@ -475,14 +512,35 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Enviando…';
       mostrarEstado('', '');
+      formSuccess.hidden = true;
 
       try {
-        const guardado = await guardarEnMongo(datos);
-        if (!guardado) await enviarANetlify(datos);
+        const resultado = await guardarEnMongo(datos);
+        let correoEnviado = false;
 
-        mostrarEstado('¡Gracias! Tu mensaje fue enviado. Te responderemos en menos de 24 horas.', 'success');
+        if (resultado) {
+          correoEnviado = resultado.correoEnviado;
+        } else {
+          await enviarANetlify(datos);
+        }
+
+        const primerNombre = (datos.nombre || '').trim().split(/\s+/)[0];
+        const saludo = primerNombre ? '¡Gracias, ' + primerNombre + '!' : '¡Gracias!';
+
+        mostrarEstado(
+          correoEnviado
+            ? saludo + ' Guardamos tu mensaje y te enviamos un correo con toda la información. Revisa también la carpeta de spam.'
+            : saludo + ' Tu mensaje fue enviado. Te responderemos en menos de 24 horas.',
+          'success'
+        );
+
+        formSuccessText.textContent = correoEnviado
+          ? 'Mientras revisamos tu mensaje, puedes adelantar tu asesoría personalizada por WhatsApp.'
+          : '¿Quieres adelantar tu asesoría personalizada? Escríbenos por WhatsApp.';
+        formSuccess.hidden = false;
         contactForm.reset();
       } catch (error) {
+        formSuccess.hidden = true;
         mostrarEstado(
           error.definitivo
             ? error.message

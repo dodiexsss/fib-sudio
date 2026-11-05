@@ -194,7 +194,7 @@ Render, Railway o Fly.io pueden ejecutar el repositorio completo:
 | --- | --- |
 | Build command | `npm install` |
 | Start command | `npm start` |
-| Variables | `MONGODB_URI`, `ADMIN_TOKEN`, `PORT` (lo define el proveedor) |
+| Variables | `MONGODB_URI`, `ADMIN_TOKEN`, `PORT` (lo define el proveedor) y las de correo (`RESEND_API_KEY` **o** `SMTP_*`, ver README) |
 
 El sitio queda en `https://tu-servicio.onrender.com` y el panel en `/admin`.
 
@@ -235,9 +235,13 @@ El sitio queda en `https://tu-servicio.onrender.com` y el panel en `/admin`.
   y el `.env` nunca son accesibles por HTTP.
 - **Índices** en `createdAt`, `estado` y `activo/orden` para consultas rápidas.
 
+> Si un archivo con credenciales llegó a Git (aunque ya lo hayas borrado), rota
+> las claves y sigue la guía [SEGURIDAD.md](SEGURIDAD.md).
+
 ### Recomendaciones para una app más grande
 
-- Notificaciones por correo al recibir un mensaje (Resend, Postmark o Nodemailer).
+- Notificación interna al estudio cuando llegue un mensaje (el correo automático
+  de bienvenida ya va al cliente; ver README).
 - Autenticación real con usuarios y sesiones (better-auth, Auth.js o JWT) en lugar
   de un token compartido.
 - Subida de imágenes a Cloudinary/S3 en lugar de rutas locales.

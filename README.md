@@ -11,7 +11,7 @@ Sitio web de una sola página (one-page) para **FibStudio**, un estudio de fotog
 - **Tipo de proyecto:** sitio web + API REST (Node.js + Express) con **MongoDB**.
 - **Idioma:** español (`<html lang="es">`).
 - **Frontend:** HTML + CSS + JavaScript vanilla (sin build).
-- **Formulario de contacto:** guarda los mensajes en MongoDB; Netlify Forms queda como respaldo si la API no está disponible.
+- **Formulario de contacto:** guarda los mensajes en MongoDB y envía a la persona un correo automático de bienvenida con enlace de WhatsApp; Netlify Forms queda como respaldo si la API no está disponible.
 - **Panel privado:** `/admin`, protegido con un token, para leer y gestionar los mensajes.
 - **Diseño:** responsive, tema oscuro con acentos en dorado, tipografía editorial.
 
@@ -27,6 +27,7 @@ Sitio web de una sola página (one-page) para **FibStudio**, un estudio de fotog
 | Node.js + Express | Servidor HTTP y API REST |
 | MongoDB + Mongoose | Base de datos y modelado (`mensajes`, `proyectos`) |
 | express-rate-limit | Límite anti-spam del formulario |
+| Nodemailer / Resend | Correo automático de bienvenida al enviar el formulario |
 | Google Fonts | `Fraunces` (títulos), `Public Sans` (texto), `JetBrains Mono` (etiquetas) |
 | SVG inline | Logo y espiral animada del hero |
 | Netlify Forms | Respaldo opcional del formulario si no hay API |
@@ -47,12 +48,14 @@ pagina-claude/
 │   ├── db.js                  # Conexión de Mongoose
 │   ├── seed.js                # Carga el portafolio inicial
 │   ├── data/proyectos.js      # Contenido semilla
+│   ├── email/                 # Transporte (SMTP/Resend) y plantilla del correo
 │   ├── middleware/            # Autenticación del panel
 │   ├── models/                # Mensaje y Proyecto
 │   ├── routes/                # contacto, mensajes, portafolio
-│   └── utils/
+│   └── utils/                 # asyncHandler, escapado de HTML
 ├── test/
-│   └── api.test.js            # Pruebas de integración (Mongo en memoria)
+│   ├── api.test.js            # Pruebas de integración (Mongo en memoria)
+│   └── email.test.js          # Pruebas de la plantilla y del transporte
 └── css/
     └── images/
         ├── styles.css         # Hoja de estilos principal
@@ -201,6 +204,65 @@ servidor los guarda en MongoDB:
   configura `<meta name="fibstudio-api" content="https://tu-api...">` en el
   `<head>` de `index.html` y define `CORS_ORIGIN` en el servidor.
 
+### Correo automático de bienvenida
+
+Cuando alguien envía el formulario, el servidor guarda el mensaje y luego
+envía a esa persona un correo HTML con la identidad de FibStudio: confirma la
+recepción, resume lo que escribió, explica el proceso y ofrece un botón de
+**asesoría personalizada por WhatsApp**. Si el envío del correo falla o no está
+configurado, el mensaje se guarda igual y el formulario responde con éxito.
+
+Configura **una** de estas dos opciones en `.env` (plantilla completa en
+[`.env.example`](.env.example)):
+
+**Opción A — Resend (HTTPS, recomendada en Render/Railway):**
+
+```env
+RESEND_API_KEY=re_xxxxxxxxx
+EMAIL_FROM=FibStudio <fibstudio@gmail.com>
+```
+
+**Opción B — SMTP con Gmail, Brevo, Zoho, etc.:**
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=fibstudio@gmail.com
+SMTP_PASS=contraseña-de-aplicación
+EMAIL_FROM=FibStudio <fibstudio@gmail.com>
+EMAIL_REPLY_TO=fibstudio@gmail.com
+```
+
+> Con Gmail usa una **contraseña de aplicación** (Cuenta de Google → Seguridad →
+> Verificación en dos pasos → Contraseñas de aplicaciones), no la contraseña
+> normal. En planes gratuitos de algunos hosts los puertos SMTP están bloqueados:
+> en ese caso usa Resend.
+
+Variables de personalización:
+
+| Variable | Uso | Valor por defecto |
+| --- | --- | --- |
+| `WHATSAPP_NUMBER` | Número del botón de WhatsApp (código de país, sin `+`) | `593962377437` |
+| `WHATSAPP_MENSAJE` | Texto que se abre en WhatsApp; admite `{nombre}` | Mensaje de asesoría |
+| `STUDIO_EMAIL` | Correo visible en el pie del mensaje | `fibstudio@gmail.com` |
+| `SITE_URL` | Enlace "Visitar el sitio" del correo | Vacío (se omite) |
+| `INSTAGRAM_URL` | Enlace de Instagram del pie | `https://instagram.com` |
+
+El botón de WhatsApp del propio sitio se configura en `index.html`, en el bloque
+`// ---------- WhatsApp ----------` (constantes `WHATSAPP_NUMERO`,
+`WHATSAPP_MENSAJE` y `WHATSAPP_MENSAJE_GRACIAS`).
+
+Para probarlo: arranca con `npm run dev`, envía el formulario con un correo real
+y revisa la bandeja (y la carpeta de spam). También puedes probar solo el correo,
+sin pasar por el formulario:
+
+```bash
+npm run email:test -- tu@correo.com
+```
+
+El panel `/admin` sigue recibiendo el mensaje aunque el correo falle.
+
 ### Pasos para activarlo
 
 1. Configura `MONGODB_URI` y `ADMIN_TOKEN` (ver [BASE-DE-DATOS.md](BASE-DE-DATOS.md)).
@@ -223,6 +285,14 @@ El proyecto ya incluye varias buenas prácticas:
 - Región `role="status"` con `aria-live="polite"` para el resultado del formulario.
 - Soporte de `prefers-reduced-motion` para reducir animaciones.
 - Clase `.sr-only` para texto solo para lectores de pantalla.
+
+## Seguridad
+
+- Los secretos viven en `.env` (ignorado por Git) y en las variables de entorno
+  del hosting. `.env.example` solo contiene valores vacíos o de ejemplo.
+- `.env`, `.env.*` y `*.env` están en `.gitignore` (excepto `.env.example`).
+- Si una credencial llegó a un repositorio público, **rótala de inmediato** y
+  después limpia el historial. Guía paso a paso: [SEGURIDAD.md](SEGURIDAD.md).
 
 ## Responsive
 
@@ -293,7 +363,8 @@ d5696a0 agregue css y HTML
 - Revisar el correo, teléfono e Instagram definitivos.
 - Actualizar el enlace de Instagram (actualmente apunta a la home de Instagram).
 - Hay reglas CSS duplicadas (`.gallery-item figcaption` y `.gallery-item figcaption .mono`) y bloques de placeholders (`.ph-*`) sin uso que se pueden limpiar.
-- Añadir notificaciones por correo al recibir un mensaje (hoy solo se ven en `/admin`).
+- Añadir una notificación interna al estudio cuando llegue un mensaje (hoy el
+  correo automático va solo al cliente; el equipo lo ve en `/admin`).
 - Sustituir el token compartido por autenticación con usuarios si el equipo crece.
 - Subir las imágenes del portafolio a un CDN (Cloudinary/S3) en lugar de servir archivos locales.
 
