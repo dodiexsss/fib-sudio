@@ -11,6 +11,8 @@ const CLAVES_CORREO = [
   'SMTP_PORT',
   'SMTP_SECURE',
   'EMAIL_FROM',
+  'EMAIL_REPLY_TO',
+  'STUDIO_EMAIL',
   'WHATSAPP_NUMBER',
   'WHATSAPP_MENSAJE',
 ];
@@ -43,6 +45,7 @@ test('el correo de bienvenida usa el tono y la información del sitio', async ()
     assert.match(html, /menos de 24 horas/);
     assert.match(html, /Agendar mi asesoría por WhatsApp/);
     assert.match(html, /https:\/\/wa\.me\/593962377437/);
+    assert.match(html, /fibstudio\.of@gmail\.com/);
     assert.match(texto, /LO QUE NOS CONTASTE/);
     assert.match(texto, /Quiero cotizar una boda para diciembre/);
   });

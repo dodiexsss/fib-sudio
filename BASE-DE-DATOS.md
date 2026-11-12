@@ -236,7 +236,7 @@ El sitio queda en `https://tu-servicio.onrender.com` y el panel en `/admin`.
 - **Índices** en `createdAt`, `estado` y `activo/orden` para consultas rápidas.
 
 > Si un archivo con credenciales llegó a Git (aunque ya lo hayas borrado), rota
-> las claves y sigue la guía [SEGURIDAD.md](SEGURIDAD.md).
+> las claves y elimina el archivo del historial del repositorio.
 
 ### Recomendaciones para una app más grande
 

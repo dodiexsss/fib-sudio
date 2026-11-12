@@ -1,8 +1,8 @@
 import { escaparHtml as esc } from '../utils/html.js';
 
 const NUMERO_WHATSAPP_POR_DEFECTO = '593962377437';
-const CORREO_ESTUDIO_POR_DEFECTO = 'fibstudio@gmail.com';
-const INSTAGRAM_POR_DEFECTO = 'https://instagram.com';
+const CORREO_ESTUDIO_POR_DEFECTO = 'fibstudio.of@gmail.com';
+const INSTAGRAM_POR_DEFECTO = 'https://www.instagram.com/fib.studio.oc?dlrf=MWpnN3F5bDBncnQ5MQ==';
 const MENSAJE_WHATSAPP_POR_DEFECTO =
   'Hola FibStudio, soy {nombre}. Acabo de enviar el formulario y quiero agendar mi asesoría personalizada.';
 

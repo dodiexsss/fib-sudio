@@ -160,10 +160,9 @@ Si la API no responde, se conserva el HTML estático como respaldo.
 
 Se editan en la sección `#contacto` de `index.html`:
 
-- Correo: `hola@fibstudio.com`
+- Correo: `fibstudio.of@gmail.com`
 - WhatsApp/teléfono: `+593 96 237 7437`
-- Instagram: `@fibstudio` (enlace genérico a `https://instagram.com`)
-
+- Instagram: `@fib.studio.oc` 
 ### Colores y tipografías
 
 Todo está centralizado en variables CSS al inicio de `css/images/styles.css`:
@@ -219,25 +218,26 @@ Configura **una** de estas dos opciones en `.env` (plantilla completa en
 
 ```env
 RESEND_API_KEY=re_xxxxxxxxx
-EMAIL_FROM=FibStudio <fibstudio@gmail.com>
+EMAIL_FROM=FibStudio <fibstudio.of@gmail.com>
 ```
 
 **Opción B — SMTP con Gmail, Brevo, Zoho, etc.:**
 
 ```env
 SMTP_HOST=smtp.gmail.com
-SMTP_PORT=465
-SMTP_SECURE=true
-SMTP_USER=fibstudio@gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=fibstudio.of@gmail.com
 SMTP_PASS=contraseña-de-aplicación
-EMAIL_FROM=FibStudio <fibstudio@gmail.com>
-EMAIL_REPLY_TO=fibstudio@gmail.com
+EMAIL_FROM=FibStudio <fibstudio.of@gmail.com>
+EMAIL_REPLY_TO=fibstudio.of@gmail.com
 ```
 
 > Con Gmail usa una **contraseña de aplicación** (Cuenta de Google → Seguridad →
 > Verificación en dos pasos → Contraseñas de aplicaciones), no la contraseña
-> normal. En planes gratuitos de algunos hosts los puertos SMTP están bloqueados:
-> en ese caso usa Resend.
+> normal. Si el puerto 587 no funciona, prueba `SMTP_PORT=465` con
+> `SMTP_SECURE=true`. En planes gratuitos de algunos hosts los puertos SMTP están
+> bloqueados: en ese caso usa Resend.
 
 Variables de personalización:
 
@@ -245,9 +245,9 @@ Variables de personalización:
 | --- | --- | --- |
 | `WHATSAPP_NUMBER` | Número del botón de WhatsApp (código de país, sin `+`) | `593962377437` |
 | `WHATSAPP_MENSAJE` | Texto que se abre en WhatsApp; admite `{nombre}` | Mensaje de asesoría |
-| `STUDIO_EMAIL` | Correo visible en el pie del mensaje | `fibstudio@gmail.com` |
+| `STUDIO_EMAIL` | Correo visible en el pie del mensaje | `fibstudio.of@gmail.com` |
 | `SITE_URL` | Enlace "Visitar el sitio" del correo | Vacío (se omite) |
-| `INSTAGRAM_URL` | Enlace de Instagram del pie | `https://instagram.com` |
+| `INSTAGRAM_URL` | Enlace de Instagram del pie | `https://www.instagram.com/fib.studio.oc?dlrf=MWpnN3F5bDBncnQ5MQ==` |
 
 El botón de WhatsApp del propio sitio se configura en `index.html`, en el bloque
 `// ---------- WhatsApp ----------` (constantes `WHATSAPP_NUMERO`,
@@ -292,7 +292,7 @@ El proyecto ya incluye varias buenas prácticas:
   del hosting. `.env.example` solo contiene valores vacíos o de ejemplo.
 - `.env`, `.env.*` y `*.env` están en `.gitignore` (excepto `.env.example`).
 - Si una credencial llegó a un repositorio público, **rótala de inmediato** y
-  después limpia el historial. Guía paso a paso: [SEGURIDAD.md](SEGURIDAD.md).
+  después limpia el historial de Git.
 
 ## Responsive
 
