@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { plantillaBienvenida, crearEnlaceWhatsapp } from '../server/email/plantillas.js';
-import { correoConfigurado, enviarCorreo } from '../server/email/transporte.js';
+import { plantillaBienvenida, crearEnlaceWhatsapp } from '../src/email/plantillas.js';
+import { correoConfigurado, enviarCorreo } from '../src/email/transporte.js';
 
 const CLAVES_CORREO = [
   'RESEND_API_KEY',
