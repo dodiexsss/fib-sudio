@@ -357,17 +357,6 @@ bd9c76a agregue el formulario
 d5696a0 agregue css y HTML
 ```
 
-## Pendientes / notas conocidas
-
-- Crear `gracias.html` o ajustar el `action` del formulario.
-- Revisar el correo, teléfono e Instagram definitivos.
-- Actualizar el enlace de Instagram (actualmente apunta a la home de Instagram).
-- Hay reglas CSS duplicadas (`.gallery-item figcaption` y `.gallery-item figcaption .mono`) y bloques de placeholders (`.ph-*`) sin uso que se pueden limpiar.
-- Añadir una notificación interna al estudio cuando llegue un mensaje (hoy el
-  correo automático va solo al cliente; el equipo lo ve en `/admin`).
-- Sustituir el token compartido por autenticación con usuarios si el equipo crece.
-- Subir las imágenes del portafolio a un CDN (Cloudinary/S3) en lugar de servir archivos locales.
-
 ---
 
 © FibStudio. Todos los derechos reservados.
