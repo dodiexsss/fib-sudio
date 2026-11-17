@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { crearMensaje, enviarANetlify } from '../api.js'
 
 const DATOS_INICIALES = {
   nombre: '',
@@ -11,10 +12,72 @@ const DATOS_INICIALES = {
 function ContactForm() {
   // Inputs controlados: React guarda cada valor en el estado del formulario.
   const [datos, setDatos] = useState(DATOS_INICIALES)
+  const [enviando, setEnviando] = useState(false)
+  const [estado, setEstado] = useState({ texto: '', tipo: '' })
+  const [textoExito, setTextoExito] = useState('')
 
   function manejarCambio(evento) {
     const { name, value } = evento.target
     setDatos((anteriores) => ({ ...anteriores, [name]: value }))
+  }
+
+  // Guarda en MongoDB. Si la API no existe (sitio solo estático), usa Netlify Forms.
+  async function guardarMensaje() {
+    try {
+      const data = await crearMensaje(datos)
+      return { correoEnviado: data.correo === 'enviado' }
+    } catch (error) {
+      const apiNoDisponible =
+        !error.status || [404, 405].includes(error.status) || error.status >= 502
+
+      if (!apiNoDisponible) throw error
+
+      await enviarANetlify(datos)
+      return { correoEnviado: false }
+    }
+  }
+
+  async function enviar(evento) {
+    evento.preventDefault()
+
+    // Si el honeypot fue rellenado, es un bot: no enviamos nada.
+    if (datos.empresa.trim()) return
+
+    setEnviando(true)
+    setEstado({ texto: '', tipo: '' })
+    setTextoExito('')
+
+    try {
+      const { correoEnviado } = await guardarMensaje()
+
+      const primerNombre = (datos.nombre || '').trim().split(/\s+/)[0]
+      const saludo = primerNombre ? '¡Gracias, ' + primerNombre + '!' : '¡Gracias!'
+
+      setEstado({
+        texto: correoEnviado
+          ? saludo + ' Guardamos tu mensaje y te enviamos un correo con toda la información. Revisa también la carpeta de spam.'
+          : saludo + ' Tu mensaje fue enviado. Te responderemos en menos de 24 horas.',
+        tipo: 'success',
+      })
+
+      setTextoExito(
+        correoEnviado
+          ? 'Mientras revisamos tu mensaje, puedes adelantar tu asesoría personalizada por WhatsApp.'
+          : '¿Quieres adelantar tu asesoría personalizada? Escríbenos por WhatsApp.'
+      )
+
+      setDatos(DATOS_INICIALES)
+    } catch (error) {
+      const esDefinitivo = Boolean(error.status)
+      setEstado({
+        texto: esDefinitivo
+          ? error.message
+          : 'Hubo un problema al enviar tu mensaje. Intenta de nuevo o escríbenos directo por correo.',
+        tipo: 'error',
+      })
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
@@ -26,7 +89,7 @@ function ContactForm() {
       data-netlify="true"
       netlify-honeypot="empresa"
       action="gracias.html"
-      onSubmit={(evento) => evento.preventDefault()}
+      onSubmit={enviar}
     >
       {/* Campo oculto obligatorio para que Netlify identifique el formulario */}
       <input type="hidden" name="form-name" value="contacto" />
@@ -96,12 +159,16 @@ function ContactForm() {
         ></textarea>
       </div>
 
-      <button type="submit" className="btn btn-primary btn-block" id="submitBtn">Enviar mensaje</button>
+      <button type="submit" className="btn btn-primary btn-block" id="submitBtn" disabled={enviando}>
+        {enviando ? 'Enviando…' : 'Enviar mensaje'}
+      </button>
 
-      <p className="form-status" id="formStatus" role="status" aria-live="polite"></p>
+      <p className={'form-status' + (estado.tipo ? ' is-' + estado.tipo : '')} id="formStatus" role="status" aria-live="polite">
+        {estado.texto}
+      </p>
 
-      <div className="form-success" id="formSuccess" hidden>
-        <p id="formSuccessText"></p>
+      <div className="form-success" id="formSuccess" hidden={!textoExito}>
+        <p id="formSuccessText">{textoExito}</p>
         <a
           className="btn btn-outline btn-block"
           href="https://wa.me/593962377437?text=Hola%20FibStudio%2C%20acabo%20de%20enviar%20el%20formulario%20y%20quiero%20agendar%20mi%20asesor%C3%ADa%20personalizada."
