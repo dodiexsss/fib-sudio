@@ -16,7 +16,7 @@ export function createApp() {
 
   // CORS: el frontend React corre en el puerto 5173 de Vite.
   // Si defines CORS_ORIGIN en .env, se usan esos dominios (separados por comas).
-  const origins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+  const origins = (process.env.CORS_ORIGIN || 'http://localhost:5173,http://127.0.0.1:5173')
     .split(',')
     .map((origen) => origen.trim())
     .filter(Boolean);
