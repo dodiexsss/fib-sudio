@@ -1,3 +1,6 @@
+import { useEffect, useRef, useState } from 'react'
+import ChatMensaje from './ChatMensaje.jsx'
+import { buscar, entradaPorId, CHIPS_INICIALES } from '../utils/chatbot.js'
 import '../chatbot.css'
 
 const ICONO_CHAT = (
@@ -24,10 +27,110 @@ const ICONO_ESPIRAL = (
   </svg>
 )
 
+const SALUDO =
+  '¡Hola! Soy el asistente de FibStudio. Te respondo al instante las dudas más comunes sobre sesiones, eventos, precios y entregas.\n\n¿Sobre qué te gustaría saber?'
+
 function ChatWidget() {
+  const [abierto, setAbierto] = useState(false)
+  const [visto, setVisto] = useState(false)
+  const [iniciado, setIniciado] = useState(false)
+  const [mensajes, setMensajes] = useState([])
+  const [sugerencias, setSugerencias] = useState([])
+  const [texto, setTexto] = useState('')
+  const [escribiendo, setEscribiendo] = useState(false)
+
+  const contador = useRef(0)
+  const temporizador = useRef(null)
+  const logRef = useRef(null)
+  const inputRef = useRef(null)
+  const toggleRef = useRef(null)
+
+  const siguienteId = () => {
+    contador.current += 1
+    return contador.current
+  }
+
+  function abrir() {
+    setAbierto(true)
+    setVisto(true)
+    if (!iniciado) {
+      setMensajes([{ id: siguienteId(), quien: 'bot', entrada: { respuesta: SALUDO } }])
+      setSugerencias(CHIPS_INICIALES)
+      setIniciado(true)
+    }
+  }
+
+  function cerrar(devolverFoco = true) {
+    setAbierto(false)
+    if (devolverFoco) toggleRef.current?.focus({ preventScroll: true })
+  }
+
+  function preguntar(textoPregunta) {
+    if (escribiendo) return
+
+    const limpio = String(textoPregunta || '').trim()
+    if (!limpio) return
+
+    const resultado = buscar(limpio)
+    setMensajes((anteriores) => [
+      ...anteriores,
+      { id: siguienteId(), quien: 'user', texto: limpio },
+    ])
+    setTexto('')
+    setSugerencias([])
+    setEscribiendo(true)
+
+    const reducido = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const retraso = reducido ? 80 : 380 + Math.random() * 320
+
+    temporizador.current = window.setTimeout(() => {
+      setMensajes((anteriores) => [
+        ...anteriores,
+        { id: siguienteId(), quien: 'bot', entrada: resultado.entrada },
+      ])
+      setSugerencias(resultado.sugerencias)
+      setEscribiendo(false)
+    }, retraso)
+  }
+
+  function elegirSugerencia(id) {
+    const entrada = entradaPorId(id)
+    if (entrada) preguntar(entrada.pregunta)
+  }
+
+  useEffect(() => {
+    const log = logRef.current
+    if (log) log.scrollTop = log.scrollHeight
+  }, [mensajes, escribiendo, abierto])
+
+  useEffect(() => {
+    if (abierto && window.matchMedia('(min-width: 521px)').matches) {
+      inputRef.current?.focus({ preventScroll: true })
+    }
+  }, [abierto])
+
+  useEffect(() => {
+    return () => window.clearTimeout(temporizador.current)
+  }, [])
+
   return (
-    <div id="fs-chat" className="fs-chat" data-open="false" data-visto="false">
-      <section className="fs-chat__panel" id="fs-chat-panel" role="dialog" aria-modal="false" aria-labelledby="fs-chat-titulo" hidden>
+    <div
+      id="fs-chat"
+      className="fs-chat"
+      data-open={abierto ? 'true' : 'false'}
+      data-visto={visto ? 'true' : 'false'}
+      onKeyDown={(evento) => {
+        if (evento.key === 'Escape' && abierto) cerrar()
+      }}
+    >
+      <section
+        className="fs-chat__panel"
+        id="fs-chat-panel"
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby="fs-chat-titulo"
+        hidden={!abierto}
+      >
         <header className="fs-chat__header">
           <div className="fs-chat__identidad">
             <span className="fs-chat__avatar">{ICONO_ESPIRAL}</span>
@@ -36,17 +139,62 @@ function ChatWidget() {
               <p className="fs-chat__estado"><span className="fs-chat__punto" aria-hidden="true"></span>Respuestas automáticas</p>
             </div>
           </div>
-          <button type="button" className="fs-chat__cerrar" aria-label="Cerrar asistente">{ICONO_CERRAR}</button>
+          <button type="button" className="fs-chat__cerrar" aria-label="Cerrar asistente" onClick={() => cerrar()}>
+            {ICONO_CERRAR}
+          </button>
         </header>
 
-        <div className="fs-chat__log" role="log" aria-live="polite" aria-relevant="additions"></div>
+        <div className="fs-chat__log" role="log" aria-live="polite" aria-relevant="additions" ref={logRef}>
+          {mensajes.map((mensaje) => (
+            <ChatMensaje key={mensaje.id} mensaje={mensaje} onCerrar={cerrar} />
+          ))}
+          {escribiendo && (
+            <div className="fs-chat__msg fs-chat__msg--bot fs-chat__msg--escribiendo" aria-hidden="true">
+              <div className="fs-chat__bubble"><span></span><span></span><span></span></div>
+            </div>
+          )}
+        </div>
 
-        <div className="fs-chat__sugerencias" role="group" aria-label="Preguntas sugeridas"></div>
+        <div className="fs-chat__sugerencias" role="group" aria-label="Preguntas sugeridas" hidden={sugerencias.length === 0}>
+          {sugerencias.map((id) => {
+            const entrada = entradaPorId(id)
+            if (!entrada) return null
 
-        <form className="fs-chat__form" autoComplete="off">
+            return (
+              <button
+                key={entrada.id}
+                type="button"
+                className="fs-chat__sugerencia"
+                onClick={() => elegirSugerencia(entrada.id)}
+              >
+                {entrada.chip || entrada.pregunta}
+              </button>
+            )
+          })}
+        </div>
+
+        <form
+          className="fs-chat__form"
+          autoComplete="off"
+          onSubmit={(evento) => {
+            evento.preventDefault()
+            preguntar(texto)
+          }}
+        >
           <label className="fs-chat__sr" htmlFor="fs-chat-input">Escribe tu pregunta</label>
-          <input className="fs-chat__input" id="fs-chat-input" type="text" placeholder="Escribe tu pregunta…" maxLength={220} />
-          <button type="submit" className="fs-chat__enviar" aria-label="Enviar pregunta">{ICONO_ENVIAR}</button>
+          <input
+            className="fs-chat__input"
+            id="fs-chat-input"
+            type="text"
+            placeholder="Escribe tu pregunta…"
+            maxLength={220}
+            value={texto}
+            onChange={(evento) => setTexto(evento.target.value)}
+            ref={inputRef}
+          />
+          <button type="submit" className="fs-chat__enviar" aria-label="Enviar pregunta" disabled={escribiendo}>
+            {ICONO_ENVIAR}
+          </button>
         </form>
 
         <p className="fs-chat__nota">
@@ -57,9 +205,17 @@ function ChatWidget() {
         </p>
       </section>
 
-      <button type="button" className="fs-chat__toggle" aria-expanded="false" aria-controls="fs-chat-panel" aria-label="Abrir preguntas frecuentes">
+      <button
+        type="button"
+        className="fs-chat__toggle"
+        aria-expanded={abierto}
+        aria-controls="fs-chat-panel"
+        aria-label={abierto ? 'Cerrar preguntas frecuentes' : 'Abrir preguntas frecuentes'}
+        onClick={() => (abierto ? cerrar(false) : abrir())}
+        ref={toggleRef}
+      >
         <span className="fs-chat__toggle-icono">{ICONO_CHAT}{ICONO_CERRAR}</span>
-        <span className="fs-chat__toggle-texto">Preguntas frecuentes</span>
+        <span className="fs-chat__toggle-texto">{abierto ? 'Cerrar' : 'Preguntas frecuentes'}</span>
         <span className="fs-chat__badge" aria-hidden="true">1</span>
       </button>
     </div>
