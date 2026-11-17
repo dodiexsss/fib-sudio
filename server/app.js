@@ -55,6 +55,7 @@ export function createApp() {
   // Se sirven solo las carpetas necesarias: el código del servidor y el .env
   // nunca quedan expuestos.
   app.use('/css', express.static(path.join(rootDir, 'css'), { maxAge: '7d' }));
+  app.use('/js', express.static(path.join(rootDir, 'js'), { maxAge: '7d' }));
 
   app.get(['/', '/index.html'], (_req, res) => {
     res.sendFile(path.join(rootDir, 'index.html'));
@@ -62,6 +63,10 @@ export function createApp() {
 
   app.get(['/admin', '/dashboard.html'], (_req, res) => {
     res.sendFile(path.join(rootDir, 'dashboard.html'));
+  });
+
+  app.get('/gracias.html', (_req, res) => {
+    res.sendFile(path.join(rootDir, 'gracias.html'));
   });
 
   // --- Errores -----------------------------------------------------------

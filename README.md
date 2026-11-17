@@ -12,6 +12,7 @@ Sitio web de una sola página (one-page) para **FibStudio**, un estudio de fotog
 - **Idioma:** español (`<html lang="es">`).
 - **Frontend:** HTML + CSS + JavaScript vanilla (sin build).
 - **Formulario de contacto:** guarda los mensajes en MongoDB y envía a la persona un correo automático de bienvenida con enlace de WhatsApp; Netlify Forms queda como respaldo si la API no está disponible.
+- **Chatbot de FAQ:** widget flotante con respuestas automáticas por palabras clave, sin dependencias ni servicios externos.
 - **Panel privado:** `/admin`, protegido con un token, para leer y gestionar los mensajes.
 - **Diseño:** responsive, tema oscuro con acentos en dorado, tipografía editorial.
 
@@ -24,6 +25,7 @@ Sitio web de una sola página (one-page) para **FibStudio**, un estudio de fotog
 | HTML5 semántico | Estructura del sitio |
 | CSS3 | Estilos, grid, animaciones, media queries |
 | JavaScript vanilla | Menú móvil, año del footer, galería, envío del formulario |
+| JavaScript vanilla (widget) | Asistente flotante de preguntas frecuentes, sin dependencias |
 | Node.js + Express | Servidor HTTP y API REST |
 | MongoDB + Mongoose | Base de datos y modelado (`mensajes`, `proyectos`) |
 | express-rate-limit | Límite anti-spam del formulario |
@@ -56,7 +58,10 @@ pagina-claude/
 ├── test/
 │   ├── api.test.js            # Pruebas de integración (Mongo en memoria)
 │   └── email.test.js          # Pruebas de la plantilla y del transporte
+├── js/
+│   └── chatbot.js             # Widget de preguntas frecuentes (independiente)
 └── css/
+    ├── chatbot.css            # Estilos del widget (prefijo .fs-chat)
     └── images/
         ├── styles.css         # Hoja de estilos principal
         ├── playa.avif         # Portafolio: "Pareja, amanecer"
@@ -273,6 +278,67 @@ El panel `/admin` sigue recibiendo el mensaje aunque el correo falle.
    apunta a una página que **todavía no existe**; si no la creas, el envío por
    `fetch` sigue funcionando, pero conviene añadirla o cambiar la ruta.
 
+## Chatbot de preguntas frecuentes
+
+El sitio incluye un asistente flotante en la esquina inferior derecha. Responde
+al instante con contenido definido (no usa IA ni servicios externos) y está
+pensado para no tocar el código existente:
+
+- `js/chatbot.js` — lógica de coincidencia, respuestas y creación del widget.
+- `css/chatbot.css` — estilos aislados con el prefijo `.fs-chat`.
+
+En `index.html` solo se añaden dos referencias: el `<link>` de la hoja de
+estilos y el `<script>` antes de `</body>`. El servidor Express sirve `/js`
+como carpeta estática, igual que ya hacía con `/css`.
+
+### Cómo funciona
+
+1. El texto escrito se normaliza (minúsculas, sin acentos ni signos).
+2. Se buscan palabras y frases clave en el arreglo `FAQ`.
+3. Gana la entrada con más coincidencias. Si ninguna alcanza el mínimo, se
+   muestra una respuesta de respaldo con accesos a WhatsApp y al formulario.
+4. Las respuestas admiten `**negrita**`, listas con `- ` o `1. ` y botones
+   (`enlaces`) a secciones del sitio, correo o WhatsApp.
+5. Después de cada respuesta se muestran sugerencias relacionadas para seguir
+   navegando las preguntas sin escribir.
+
+### Editar las respuestas
+
+Todo vive en `js/chatbot.js`, en el arreglo `FAQ`. Cada entrada tiene:
+
+| Campo | Uso |
+| --- | --- |
+| `id` | Identificador único |
+| `chip` | Texto corto del botón de sugerencia |
+| `pregunta` | Pregunta completa que se envía al tocar el chip |
+| `claves` | Palabras o frases que activan la respuesta |
+| `respuesta` | Texto de la respuesta |
+| `enlaces` | Botones opcionales: `{ texto, url }` o `{ texto, whatsapp }` |
+| `sugiere` | IDs de preguntas relacionadas para mostrar después |
+
+Para añadir una pregunta, copia un bloque, cambia el `id`, las `claves` y la
+`respuesta`. No hace falta tocar el HTML ni el CSS. Las palabras clave deben ser
+específicas ("adelanto", "segundo fotografo", "formas de pago") para evitar
+coincidencias con temas distintos.
+
+También puedes probar el motor desde la consola del navegador:
+
+```js
+FibStudioChat.buscar('cuanto cuesta una boda'); // { entrada, puntaje, sugerencias }
+FibStudioChat.abrir();
+```
+
+### Desactivarlo
+
+Elimina estas dos líneas de `index.html`:
+
+```html
+<link rel="stylesheet" href="css/chatbot.css" />
+<script src="js/chatbot.js"></script>
+```
+
+El resto del sitio sigue funcionando exactamente igual.
+
 ## Accesibilidad
 
 El proyecto ya incluye varias buenas prácticas:
@@ -283,6 +349,8 @@ El proyecto ya incluye varias buenas prácticas:
 - Texto alternativo en todas las imágenes.
 - Estados de foco visibles (`:focus-visible`) en enlaces, botones y campos.
 - Región `role="status"` con `aria-live="polite"` para el resultado del formulario.
+- Diálogo del chatbot (`role="dialog"`), registro de mensajes con `aria-live` y
+  cierre con `Esc`; el foco vuelve al botón flotante al cerrar.
 - Soporte de `prefers-reduced-motion` para reducir animaciones.
 - Clase `.sr-only` para texto solo para lectores de pantalla.
 
@@ -306,6 +374,7 @@ Los puntos de quiebre están en `styles.css`:
 - Imágenes con `loading="lazy"`.
 - Formatos mixtos (`.jpg`, `.avif`).
 - Sin frameworks ni librerías externas en el frontend más allá de las fuentes.
+- El chatbot es JavaScript puro, sin dependencias, y solo se carga en la página principal.
 - Índices de MongoDB en `createdAt`, `estado` y `activo/orden`.
 - La API limita el listado a los 200 mensajes más recientes.
 

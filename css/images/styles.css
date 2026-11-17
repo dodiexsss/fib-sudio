@@ -434,16 +434,9 @@ section {
   margin-top: 48px;
 }
 
-/* .gallery-item {
-  margin: 0;
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius);
-}
-
 .gallery-item.span-2 {
   grid-column: span 2;
-} */
+}
 
 .gallery-item {
   margin: 0;
