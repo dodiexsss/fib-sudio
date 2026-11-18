@@ -1,14 +1,9 @@
 import express from 'express';
 import cors from 'cors';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import mongoose from 'mongoose';
 import contactoRouter from './routes/contacto.js';
 import mensajesRouter from './routes/mensajes.js';
 import portafolioRouter from './routes/portafolio.js';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(__dirname, '..');
 
 export function createApp() {
   const app = express();
@@ -19,21 +14,20 @@ export function createApp() {
 
   app.use(express.json({ limit: '100kb' }));
 
-  // Solo se habilita CORS si defines CORS_ORIGIN (útil si el frontend vive en Netlify
-  // y la API en Render). Si el mismo Express sirve el sitio, no hace falta.
-  if (process.env.CORS_ORIGIN) {
-    const origins = process.env.CORS_ORIGIN.split(',')
-      .map((origen) => origen.trim())
-      .filter(Boolean);
+  // CORS: el frontend React corre en el puerto 5173 de Vite.
+  // Si defines CORS_ORIGIN en .env, se usan esos dominios (separados por comas).
+  const origins = (process.env.CORS_ORIGIN || 'http://localhost:5173,http://127.0.0.1:5173')
+    .split(',')
+    .map((origen) => origen.trim())
+    .filter(Boolean);
 
-    app.use(
-      cors({
-        origin: origins,
-        methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-        allowedHeaders: ['Content-Type', 'x-admin-token'],
-      })
-    );
-  }
+  app.use(
+    cors({
+      origin: origins,
+      methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+      allowedHeaders: ['Content-Type', 'x-admin-token'],
+    })
+  );
 
   // --- API ---------------------------------------------------------------
   app.get('/api/salud', (_req, res) => {
@@ -49,24 +43,6 @@ export function createApp() {
 
   app.use('/api', (_req, res) => {
     res.status(404).json({ error: 'Ruta de API no encontrada.' });
-  });
-
-  // --- Sitio estático ----------------------------------------------------
-  // Se sirven solo las carpetas necesarias: el código del servidor y el .env
-  // nunca quedan expuestos.
-  app.use('/css', express.static(path.join(rootDir, 'css'), { maxAge: '7d' }));
-  app.use('/js', express.static(path.join(rootDir, 'js'), { maxAge: '7d' }));
-
-  app.get(['/', '/index.html'], (_req, res) => {
-    res.sendFile(path.join(rootDir, 'index.html'));
-  });
-
-  app.get(['/admin', '/dashboard.html'], (_req, res) => {
-    res.sendFile(path.join(rootDir, 'dashboard.html'));
-  });
-
-  app.get('/gracias.html', (_req, res) => {
-    res.sendFile(path.join(rootDir, 'gracias.html'));
   });
 
   // --- Errores -----------------------------------------------------------
@@ -88,5 +64,3 @@ export function createApp() {
 
   return app;
 }
-
-export { rootDir };

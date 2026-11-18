@@ -10,8 +10,8 @@ try {
 
   const app = createApp();
   const server = app.listen(port, () => {
-    console.log(`[web] FibStudio en http://localhost:${port}`);
-    console.log(`[web] Panel privado en http://localhost:${port}/admin`);
+    console.log(`[api] FibStudio API en http://localhost:${port}/api`);
+    console.log('[web] Frontend React en http://localhost:5173');
 
     if (!correoConfigurado()) {
       console.warn(

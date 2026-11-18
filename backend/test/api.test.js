@@ -2,9 +2,9 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { createApp } from '../server/app.js';
-import { Mensaje } from '../server/models/Mensaje.js';
-import { Proyecto } from '../server/models/Proyecto.js';
+import { createApp } from '../src/app.js';
+import { Mensaje } from '../src/models/Mensaje.js';
+import { Proyecto } from '../src/models/Proyecto.js';
 
 process.env.ADMIN_TOKEN = 'token-de-prueba';
 
@@ -48,22 +48,14 @@ test('GET /api/salud informa que la base está conectada', async () => {
   assert.equal(data.db, 'conectada');
 });
 
-test('sirve el sitio y el panel sin exponer el código del servidor', async () => {
+test('la API ya no sirve el frontend ni expone archivos del servidor', async () => {
   const home = await fetch(base + '/');
-  assert.equal(home.status, 200);
-  assert.match(await home.text(), /FibStudio/);
-
-  const panel = await fetch(base + '/admin');
-  assert.equal(panel.status, 200);
-  assert.match(await panel.text(), /Panel de mensajes/);
-
-  const css = await fetch(base + '/css/images/styles.css');
-  assert.equal(css.status, 200);
+  assert.equal(home.status, 404);
 
   const env = await fetch(base + '/.env');
   assert.notEqual(env.status, 200);
 
-  const serverFile = await fetch(base + '/server/index.js');
+  const serverFile = await fetch(base + '/src/server.js');
   assert.notEqual(serverFile.status, 200);
 });
 

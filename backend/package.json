@@ -4,15 +4,15 @@
   "private": true,
   "type": "module",
   "description": "Sitio de FibStudio con API REST y MongoDB",
-  "main": "server/index.js",
+  "main": "src/server.js",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "start": "node server/index.js",
-    "dev": "node --watch server/index.js",
-    "seed": "node server/seed.js",
-    "email:test": "node server/email/prueba.js",
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/seed.js",
+    "email:test": "node src/email/prueba.js",
     "test": "node --test"
   },
   "dependencies": {
