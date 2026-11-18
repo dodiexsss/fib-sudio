@@ -33,10 +33,7 @@ function Portfolio() {
       <div className="wrap">
         <p className="section-eyebrow mono">02 — portafolio</p>
         <h2 id="portfolio-title">Historias que ya contamos</h2>
-        <p className="section-lead">
-          Una muestra de eventos y sesiones. Reemplaza estas imágenes por tu propio trabajo
-          (ver <code>README.md</code>).
-        </p>
+        
 
         {cargando && <p className="section-lead" role="status">Cargando portafolio…</p>}
 

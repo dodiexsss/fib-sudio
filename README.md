@@ -49,30 +49,8 @@ fib-studio/
 │   ├── .env.example
 │   └── package.json
 ├── BASE-DE-DATOS.md         # Guía de MongoDB y despliegue
-├── CAMBIOS.md               # Resumen de la migración
 └── README.md
 ```
-
-## Instalación
-
-Instala las dependencias de las dos carpetas:
-
-```powershell
-cd backend
-npm install
-
-cd ..\frontend
-npm install
-```
-
-Crea los archivos `.env` a partir de los ejemplos:
-
-```powershell
-Copy-Item backend\.env.example backend\.env
-Copy-Item frontend\.env.example frontend\.env
-```
-
-Completa `backend/.env` con tu cadena de MongoDB y tu token de administración. El archivo `.env` **no se sube a Git**.
 
 ## Cómo correr el proyecto
 
@@ -102,14 +80,6 @@ Vite abre el sitio en `http://localhost:5173`:
 
 Para detener cualquiera de los dos, pulsa `Ctrl + C` en su terminal.
 
-### Cargar el portafolio inicial
-
-Si la base de datos está vacía, carga los proyectos de ejemplo (puedes ejecutarlo varias veces sin duplicar):
-
-```powershell
-cd backend
-npm run seed
-```
 
 ## Variables de entorno
 
@@ -133,7 +103,6 @@ npm run seed
 | --- | --- | --- |
 | `VITE_API_URL` | URL base de la API | `http://localhost:3000` |
 
-> Si cambias `PORT` en el backend, actualiza también `VITE_API_URL` en el frontend y `CORS_ORIGIN`.
 
 ## Scripts
 
@@ -159,4 +128,3 @@ Frontend:
 ## Más información
 
 - Endpoints, MongoDB, despliegue y solución de problemas: **[BASE-DE-DATOS.md](BASE-DE-DATOS.md)**.
-- Qué se cambió en la migración y qué bugs se encontraron: **[CAMBIOS.md](CAMBIOS.md)**.

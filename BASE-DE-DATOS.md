@@ -1,11 +1,5 @@
 # Base de datos MongoDB — guía de implementación
 
-Esta guía explica cómo el sitio de FibStudio pasó de ser una página estática a una
-aplicación real: el formulario de contacto guarda mensajes en **MongoDB** y el
-portafolio se puede administrar sin tocar el HTML.
-
----
-
 ## 1. Cómo quedó la arquitectura
 
 ```
@@ -22,10 +16,6 @@ Navegador
           ▼
       MongoDB (Atlas o local)
 ```
-
-Todo lo sirve el mismo servidor Express, así que no hay problemas de CORS en
-local ni en un despliegue único. Si separas el frontend (Netlify) de la API
-(Render), se explica más abajo cómo conectarlos.
 
 ### Archivos nuevos
 
@@ -235,47 +225,6 @@ El sitio queda en `https://tu-servicio.onrender.com` y el panel en `/admin`.
   y el `.env` nunca son accesibles por HTTP.
 - **Índices** en `createdAt`, `estado` y `activo/orden` para consultas rápidas.
 
-> Si un archivo con credenciales llegó a Git (aunque ya lo hayas borrado), rota
-> las claves y elimina el archivo del historial del repositorio.
 
-### Recomendaciones para una app más grande
-
-- Notificación interna al estudio cuando llegue un mensaje (el correo automático
-  de bienvenida ya va al cliente; ver README).
-- Autenticación real con usuarios y sesiones (better-auth, Auth.js o JWT) en lugar
-  de un token compartido.
-- Subida de imágenes a Cloudinary/S3 en lugar de rutas locales.
-- Backups de Atlas y alertas de uso.
-- Migrar a Next.js si el sitio crece a varias páginas o necesitas SSR.
 
 ---
-
-## 6. Problemas frecuentes
-
-| Síntoma | Causa probable | Solución |
-| --- | --- | --- |
-| `Falta la variable MONGODB_URI` | No existe `.env` | `Copy-Item .env.example .env` y complétalo |
-| `Could not connect to any servers` | Atlas bloquea tu IP o la contraseña tiene caracteres sin codificar | Revisa Network Access y codifica `@ : / ?` en la contraseña |
-| `/admin` dice «No se pudo conectar» | El servidor no está corriendo o faltó `ADMIN_TOKEN` | `npm run dev` y revisa la consola |
-| El formulario dice «problema al enviar» | La API no responde y Netlify tampoco está disponible | Abre `/api/salud` y revisa la terminal del servidor |
-| La galería no cambia | El seed no se ejecutó o los proyectos están `activo: false` | `npm run seed` y revisa la colección `proyectos` |
-
----
-
-## 7. Probar la API a mano
-
-```bash
-# Estado
-curl http://localhost:3000/api/salud
-
-# Crear un mensaje
-curl -X POST http://localhost:3000/api/contacto \
-  -H "Content-Type: application/json" \
-  -d '{"nombre":"Ana","email":"ana@example.com","servicio":"sesion","mensaje":"Hola, quiero una sesión."}'
-
-# Listar mensajes (privado)
-curl http://localhost:3000/api/mensajes \
-  -H "x-admin-token: TU_TOKEN"
-```
-
-En PowerShell usa `curl.exe` o `Invoke-RestMethod`.
