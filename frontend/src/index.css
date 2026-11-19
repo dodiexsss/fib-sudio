@@ -458,6 +458,13 @@ section {
   aspect-ratio: 16 / 10;
 }
 
+/* La pareja está en la parte inferior de la foto: subir el encuadre
+   para que quede centrada dentro del recuadro. */
+.gallery-item img[src*="pareja%20atardecer"],
+.gallery-item img[src*="pareja atardecer"] {
+  object-position: center bottom;
+}
+
 .gallery-item:hover img {
   filter: brightness(0.35) saturate(0.9);
   transform: scale(1.04);
